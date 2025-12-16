@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>석면 현장 관리 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f4f7f9; padding: 15px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 15px; shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h2 { color: #007bff; text-align: center; margin-bottom: 25px; }
+        label { font-weight: bold; display: block; margin-top: 15px; font-size: 14px; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-size: 16px; font-weight: bold; margin-top: 30px; cursor: pointer; }
+        button:active { background: #0056b3; }
+        .status { margin-top: 20px; font-size: 13px; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🏗️ 현장 데이터 전송</h2>
+        
+        <label>🏢 소속 업체</label>
+        <select id="company_id">
+            <option value="">업체를 선택하세요</option>
+        </select>
+
+        <label>📍 현장명</label>
+        <input type="text" id="site_name" placeholder="예: OO초등학교 철거공사">
+
+        <label>👷 측정자 성명</label>
+        <input type="text" id="inspector_name" placeholder="성함을 입력하세요">
+
+        <label>📸 현장 사진 (측정 시작)</label>
+        <input type="file" id="photo_file" accept="image/*" capture="camera">
+
+        <button onclick="processAll()">데이터 서버 전송</button>
+        <div id="status" class="status">상태: 대기 중</div>
+    </div>
+
+    <script>
+        const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
+        const S_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
+        const supabase = supabase.createClient(S_URL, S_KEY);
+
+        // 페이지 로드 시 업체 목록 불러오기
+        async function loadCompanies() {
+            const { data } = await supabase.from('companies').select('id, name');
+            const select = document.getElementById('company_id');
+            data.forEach(comp => {
+                const opt = document.createElement('option');
+                opt.value = comp.id;
+                opt.text = comp.name;
+                select.appendChild(opt);
+            });
+        }
+        loadCompanies();
+
+        async function processAll() {
+            const companyId = document.getElementById('company_id').value;
+            const siteName = document.getElementById('site_name').value;
+            const inspector = document.getElementById('inspector_name').value;
+            const file = document.getElementById('photo_file').files[0];
+            const status = document.getElementById('status');
+
+            if (!companyId || !siteName || !file) return alert("모든 항목을 입력하고 사진을 찍어주세요.");
+
+            status.innerText = "⏳ 1/3단계: 프로젝트 생성 중...";
+
+            // 1. projects 테이블에 현장 등록
+            const { data: projectData, error: projectError } = await supabase
+                .from('projects')
+                .insert([{ 
+                    company_id: companyId, 
+                    site_name: siteName, 
+                    inspector_name: inspector,
+                    measure_date: new Date().toISOString().split('T')[0]
+                }])
+                .select();
+
+            if (projectError) return alert("프로젝트 등록 실패: " + projectError.message);
+            const newProjectId = projectData[0].id;
+
+            status.innerText = "⏳ 2/3단계: 사진 클라우드 전송 중...";
+
+            // 2. Storage에 사진 업로드
+            const fileName = `photos/${newProjectId}/${Date.now()}.jpg`;
+            const { data: storageData, error: storageError } = await supabase.storage
+                .from('asbestos_photos')
+                .upload(fileName, file);
+
+            if (storageError) return alert("사진 업로드 실패: " + storageError.message);
+
+            status.innerText = "⏳ 3/3단계: 사진 기록 연결 중...";
+
+            // 3. project_photos 테이블에 사진 정보 등록
+            const { error: photoError } = await supabase
+                .from('project_photos')
+                .insert([{ 
+                    project_id: newProjectId, 
+                    photo_type: '시작사진', 
+                    storage_path: storageData.path 
+                }]);
+
+            if (photoError) {
+                status.innerText = "❌ 일부 오류 발생";
+            } else {
+                status.innerText = "✅ 전송 완료! 사무실에서 확인 가능합니다.";
+                alert("성공적으로 저장되었습니다.");
+            }
+        }
+    </script>
+</body>
+</html>
