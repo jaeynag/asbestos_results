@@ -1,190 +1,411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>석면현장관리 SaaS v8</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
-
-        /* Login & Selector View */
-        .auth-overlay { position: fixed; inset: 0; background: #fff; z-index: 1000; padding: 40px 20px; display: flex; flex-direction: column; }
-        .comp-card { background: #f9f9f9; border: 2px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .comp-card.active { border-color: var(--primary); background: #f0f7ff; }
-
-        /* Main UI */
-        .header { background: #fff; padding: 15px; border-bottom: 1px solid #ddd; sticky: top; }
-        .card { background: #fff; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .grid-row { display: grid; grid-template-columns: 1fr 70px 60px; gap: 8px; margin-bottom: 10px; align-items: end; }
-        
-        input, select { width: 100%; height: 44px; border-radius: 8px; border: 1px solid #ddd; padding: 0 10px; background: #fdfdfd; font-size: 15px; }
-        .btn-cam { height: 44px; background: #fff; border: 2px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: bold; font-size: 12px; }
-        .btn-cam.done { background: var(--success); color: #fff; border-color: var(--success); }
-        
-        /* History & Grouping */
-        .date-badge { background: #333; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 15px 0 5px 10px; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; }
-
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); }
-        .btn-main { width: 100%; height: 55px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: bold; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asbestos Report System</title>
+  <style>
+    :root { --bg:#f6f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --line:#e5e7eb; --primary:#2563eb; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo","Noto Sans KR","맑은 고딕", sans-serif;
+      background:var(--bg); color:var(--text);
+    }
+    .wrap{ max-width:720px; margin:0 auto; padding:24px 16px 40px; }
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:16px;
+      padding:18px; box-shadow: 0 1px 0 rgba(0,0,0,.02);
+    }
+    h1{ font-size:26px; margin:4px 0 10px; }
+    h2{ font-size:18px; margin:0 0 10px; }
+    p{ margin:8px 0; color:var(--muted); line-height:1.4; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .sp{ height:14px; }
+    label{ font-size:13px; color:var(--muted); display:block; margin:10px 0 6px; }
+    input, select{
+      width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px;
+      font-size:15px; background:#fff;
+    }
+    button{
+      border:0; border-radius:14px; padding:12px 14px; font-size:15px; font-weight:700;
+      cursor:pointer; background:var(--primary); color:#fff;
+    }
+    button.secondary{ background:#111827; }
+    button.ghost{ background:#fff; color:#111827; border:1px solid var(--line); }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+    .topbar{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+    .badge{ font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; color:var(--muted); background:#fff; }
+    .list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+    .item{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      padding:12px 12px; background:#fff; border-top:1px solid var(--line);
+    }
+    .item:first-child{ border-top:0; }
+    .item strong{ font-size:15px; }
+    .hint{ font-size:12px; color:var(--muted); }
+    .danger{ color:#b91c1c; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:520px){ .grid2{ grid-template-columns:1fr; } }
+    .types{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+    .typebtn{
+      padding:14px; border:1px solid var(--line); border-radius:14px; background:#fff; color:#111827; text-align:left;
+    }
+    .typebtn b{ display:block; font-size:16px; margin-bottom:4px; }
+    .typebtn small{ color:var(--muted); }
+    .typebtn.disabled{ opacity:.5; }
+    .footerbtn{ width:100%; padding:16px; border-radius:16px; font-size:16px; margin-top:14px; }
+    .toast{
+      margin-top:12px; padding:10px 12px; border-radius:12px; border:1px solid var(--line);
+      background:#fff; color:var(--muted); font-size:13px;
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="badge" id="envBadge">Supabase 연결</div>
+      <div class="row">
+        <span class="badge" id="sessionBadge">로그인 필요</span>
+        <button class="ghost" id="logoutBtn" style="display:none;">로그아웃</button>
+      </div>
+    </div>
 
-<div id="auth-view" class="auth-overlay">
-    <h1 style="font-size: 24px; margin-bottom: 5px;">반갑습니다!</h1>
-    <p style="color: #666; margin-bottom: 30px;">접속하실 회사를 선택해주세요.</p>
-    <div id="company-list">
+    <!-- LOGIN -->
+    <section id="loginView" class="card" style="display:none;">
+      <h1>로그인</h1>
+      <p>아이디 만들고 로그인하면, 접근 가능한 회사만 자동으로 뜨게 해둘게.</p>
+
+      <label>이메일</label>
+      <input id="email" type="email" placeholder="email@example.com" autocomplete="email" />
+
+      <label>비밀번호</label>
+      <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" />
+
+      <div class="sp"></div>
+      <div class="grid2">
+        <button id="signInBtn">로그인</button>
+        <button id="signUpBtn" class="secondary">회원가입</button>
+      </div>
+
+      <div class="toast" id="loginMsg" style="display:none;"></div>
+      <p class="hint">
+        ※ 이메일 인증을 켜둔 상태면 회원가입 후 확인메일 인증이 필요할 수 있음.
+      </p>
+    </section>
+
+    <!-- PENDING -->
+    <section id="pendingView" class="card" style="display:none;">
+      <h1>승인 대기</h1>
+      <p>지금은 접근 가능한 회사가 없어. 아래 UID를 회사 관리자(또는 너)에게 전달해서 권한을 받아.</p>
+
+      <div class="item" style="border:1px solid var(--line); border-radius:14px;">
+        <div>
+          <div class="hint">내 UID</div>
+          <div class="mono" id="myUid">-</div>
         </div>
-    <button class="btn-main" style="margin-top:auto" onclick="startWork()">현장 업무 시작</button>
-</div>
+        <button class="ghost" id="copyUidBtn">복사</button>
+      </div>
 
-<div id="main-view" style="display:none">
-    <div class="header">
-        <span id="display-comp" style="font-weight: bold; color: var(--primary);">회사명</span>
-        <span style="color:#ccc; margin:0 5px;">|</span>
-        <span id="display-user">측정자</span>
-    </div>
+      <div class="sp"></div>
+      <button class="footerbtn" id="refreshAccessBtn">권한 다시 확인</button>
 
-    <div class="card">
-        <label style="font-size:12px; color:#888;">📅 측정 날짜</label>
-        <input type="date" id="m_date" style="border:none; font-size:20px; font-weight:bold; padding:0; height:auto; margin-bottom:15px;">
-        
-        <label style="font-size:12px; color:#888;">📍 현장(공사)명</label>
-        <input type="text" id="site_name" placeholder="가명을 입력하세요" style="margin-bottom:15px;">
+      <div class="toast" id="pendingMsg" style="display:none;"></div>
+    </section>
 
-        <div id="input-grid" class="grid-row">
-            <div><label>위치</label><input type="text" id="loc" placeholder="P1"></div>
-            <div><label>시간</label><input type="time" id="tm"></div>
-            <button class="btn-cam" id="btn-cam" onclick="triggerCam()">📷 촬영</button>
-        </div>
-        <button class="btn-main" style="height:44px; background:#444; font-size:15px;" onclick="registerItem()">시료 등록</button>
-    </div>
+    <!-- COMPANY SELECT -->
+    <section id="companyView" class="card" style="display:none;">
+      <h1>반갑습니다!</h1>
+      <p>접속하실 회사를 선택해주세요.</p>
 
-    <div id="history-container"></div>
+      <div class="list" id="companyList"></div>
 
-    <div class="footer">
-        <button class="btn-main" style="background:var(--success)" onclick="uploadAll()">사무실로 데이터 전송 (동기화)</button>
-    </div>
-</div>
+      <button class="footerbtn" id="startBtn" disabled>현장 업무 시작</button>
+      <div class="toast" id="companyMsg" style="display:none;"></div>
+    </section>
 
-<input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="handleFile(this)">
+    <!-- DASHBOARD -->
+    <section id="dashView" class="card" style="display:none;">
+      <h1 id="dashTitle">현장 업무</h1>
+      <p class="hint">회사: <span id="dashCompanyName">-</span> · 내 UID: <span id="dashUid" class="mono">-</span></p>
 
-<script>
-    const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
-    const S_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
-    const supabaseClient = supabase.createClient(S_URL, S_KEY);
+      <h2 style="margin-top:14px;">보고서 종류</h2>
+      <div class="types">
+        <button class="typebtn" id="typeC">
+          <b>농도</b>
+          <small>측정위치/시작시간/사진 1장 입력</small>
+        </button>
+        <button class="typebtn" id="typeS">
+          <b>비산</b>
+          <small>장비/측정위치/시작시간/전·후사진(선택)</small>
+        </button>
+        <button class="typebtn disabled" id="typeSV" disabled>
+          <b>감리</b>
+          <small>추후 업데이트</small>
+        </button>
+        <button class="typebtn disabled" id="typeIN" disabled>
+          <b>조사</b>
+          <small>추후 업데이트</small>
+        </button>
+      </div>
 
-    let selectedComp = null;
-    let dataList = [];
-    let curFile = null;
+      <div class="toast" id="dashMsg" style="display:none;"></div>
 
-    // 1. 초기 회사 목록 로드 (로그인 후 소속된 회사들을 가져오는 로직)
-    async function loadInitial() {
-        const { data } = await supabaseClient.from('companies').select('*');
-        const list = document.getElementById('company-list');
-        data.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'comp-card';
-            div.innerHTML = `<b>${c.name}</b><br><small>${c.business_no || '사업자번호 없음'}</small>`;
-            div.onclick = () => {
-                document.querySelectorAll('.comp-card').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                selectedComp = c;
-            };
-            list.appendChild(div);
-        });
-        document.getElementById('m_date').value = new Date().toISOString().substring(0, 10);
+      <div class="sp"></div>
+      <button class="ghost" id="backToCompaniesBtn">회사 다시 선택</button>
+    </section>
+
+  </div>
+
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // =========================================================
+    // 1) 여기에 너 Supabase 값 넣기
+    // =========================================================
+    const SUPABASE_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi"; // <- 너 anon 키로 교체
+
+    // =========================================================
+    // 2) Supabase client
+    // =========================================================
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+
+    // =========================================================
+    // UI helpers
+    // =========================================================
+    const el = (id) => document.getElementById(id);
+    const views = ["loginView","pendingView","companyView","dashView"];
+    function show(viewId){
+      views.forEach(v => el(v).style.display = (v === viewId ? "block" : "none"));
+    }
+    function setMsg(id, text, isError=false){
+      const box = el(id);
+      box.style.display = "block";
+      box.textContent = text;
+      box.classList.toggle("danger", !!isError);
+    }
+    function clearMsg(id){
+      const box = el(id);
+      box.style.display = "none";
+      box.textContent = "";
+      box.classList.remove("danger");
     }
 
-    function startWork() {
-        if(!selectedComp) return alert("회사를 선택해주세요.");
-        document.getElementById('auth-view').style.display = 'none';
-        document.getElementById('main-view').style.display = 'block';
-        document.getElementById('display-comp').innerText = selectedComp.name;
-        document.getElementById('display-user').innerText = "관리자"; // 로그인 연동 시 사용자 이름
+    function setSessionBadge(user){
+      el("sessionBadge").textContent = user ? "로그인됨" : "로그인 필요";
+      el("logoutBtn").style.display = user ? "inline-block" : "none";
     }
 
-    function triggerCam() { document.getElementById('cam-input').click(); }
-    function handleFile(i) {
-        if(i.files[0]) {
-            curFile = i.files[0];
-            document.getElementById('btn-cam').classList.add('done');
-            document.getElementById('btn-cam').innerText = "✅ 완료";
+    // =========================================================
+    // Core: after login -> load accessible companies
+    // 기준: memberships(user_id=me, status='active') -> companies
+    // =========================================================
+    let currentUser = null;
+    let selectedCompany = null; // {id, name}
+    const LS_SELECTED_COMPANY = "ars_selected_company";
+
+    async function getActiveMembershipCompanies(userId){
+      // memberships RLS: 본인 것 select 가능
+      const { data: mems, error: memErr } = await supabase
+        .from("memberships")
+        .select("company_id, role, status")
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      if (memErr) throw memErr;
+
+      const ids = (mems || []).map(m => m.company_id).filter(Boolean);
+      if (!ids.length) return [];
+
+      // companies RLS: has_company_access 기반이라 active membership 있으면 보일 것
+      const { data: comps, error: compErr } = await supabase
+        .from("companies")
+        .select("id, name, status")
+        .in("id", ids)
+        .order("created_at", { ascending: false });
+
+      if (compErr) throw compErr;
+
+      // role 매핑 붙여주기(필요하면)
+      const roleByCompany = new Map((mems||[]).map(m => [m.company_id, m.role]));
+      return (comps || []).map(c => ({...c, role: roleByCompany.get(c.id) || "member"}));
+    }
+
+    function renderCompanyList(companies){
+      const list = el("companyList");
+      list.innerHTML = "";
+
+      let pickedId = null;
+      const stored = localStorage.getItem(LS_SELECTED_COMPANY);
+      try { pickedId = stored ? JSON.parse(stored)?.id : null; } catch {}
+
+      if (!companies.length){
+        list.innerHTML = `<div class="item"><div><strong>접근 가능한 회사가 없음</strong><div class="hint">관리자 승인 후 다시 확인해줘</div></div></div>`;
+        el("startBtn").disabled = true;
+        return;
+      }
+
+      companies.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "item";
+        const left = document.createElement("div");
+        left.innerHTML = `<strong>${escapeHtml(c.name)}</strong><div class="hint">권한: ${escapeHtml(c.role)} · 상태: ${escapeHtml(c.status)}</div>`;
+        const right = document.createElement("button");
+        right.className = "ghost";
+        right.textContent = (pickedId === c.id) ? "선택됨" : "선택";
+        right.onclick = () => {
+          selectedCompany = { id: c.id, name: c.name };
+          localStorage.setItem(LS_SELECTED_COMPANY, JSON.stringify(selectedCompany));
+          // 버튼/표시 갱신
+          [...list.querySelectorAll("button.ghost")].forEach(b => b.textContent = "선택");
+          right.textContent = "선택됨";
+          el("startBtn").disabled = false;
+          clearMsg("companyMsg");
+        };
+
+        item.appendChild(left);
+        item.appendChild(right);
+        list.appendChild(item);
+
+        // 저장된 회사가 있으면 자동 선택 처리
+        if (pickedId && pickedId === c.id) {
+          selectedCompany = { id: c.id, name: c.name };
+          right.textContent = "선택됨";
+          el("startBtn").disabled = false;
         }
+      });
     }
 
-    function registerItem() {
-        const date = document.getElementById('m_date').value;
-        const site = document.getElementById('site_name').value;
-        const loc = document.getElementById('loc').value;
-        const tm = document.getElementById('tm').value;
-
-        if(!site || !loc) return alert("현장명과 위치를 확인하세요.");
-
-        dataList.push({ id: Date.now(), date, site, loc, tm, file: curFile });
-        renderHistory();
-        
-        // 다음 입력 자동 준비
-        document.getElementById('loc').value = loc.replace(/(\d+)$/, (m) => parseInt(m) + 1);
-        document.getElementById('btn-cam').classList.remove('done');
-        document.getElementById('btn-cam').innerText = "📷 촬영";
-        curFile = null;
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
-    function renderHistory() {
-        const container = document.getElementById('history-container');
-        container.innerHTML = "";
-        const dates = [...new Set(dataList.map(d => d.date))].sort().reverse();
+    async function route(){
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session || null;
+      currentUser = session?.user || null;
+      setSessionBadge(currentUser);
 
-        dates.forEach(d => {
-            container.innerHTML += `<span class="date-badge">${d}</span>`;
-            dataList.filter(i => i.date === d).forEach(item => {
-                container.innerHTML += `
-                    <div class="history-item">
-                        <div><b>${item.loc}</b> <small style="color:#888; margin-left:8px;">${item.tm}</small><br>
-                        <span style="font-size:11px; color:var(--primary)">${item.site}</span></div>
-                        <button style="border:none; background:none; color:#FF3B30;" onclick="removeItem(${item.id})">삭제</button>
-                    </div>`;
-            });
-        });
+      if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi")) {
+        show("loginView");
+        setMsg("loginMsg", "SUPABASE_ANON_KEY부터 넣어줘. (index.html 상단)", true);
+        return;
+      }
+
+      if (!currentUser){
+        show("loginView");
+        return;
+      }
+
+      // 로그인 후: 접근 가능한 회사 조회
+      try{
+        const companies = await getActiveMembershipCompanies(currentUser.id);
+
+        // 0개면 승인대기
+        if (!companies.length){
+          show("pendingView");
+          el("myUid").textContent = currentUser.id;
+          clearMsg("pendingMsg");
+          return;
+        }
+
+        // 회사 선택 화면
+        show("companyView");
+        renderCompanyList(companies);
+        clearMsg("companyMsg");
+
+      }catch(err){
+        // memberships/companies 정책 꼬였을 때 여기로 떨어짐
+        show("pendingView");
+        el("myUid").textContent = currentUser.id;
+        setMsg("pendingMsg", `회사 목록을 못 불러왔어: ${err.message || err}`, true);
+      }
     }
 
-    function removeItem(id) {
-        dataList = dataList.filter(i => i.id !== id);
-        renderHistory();
-    }
+    // =========================================================
+    // Auth actions
+    // =========================================================
+    el("signInBtn").onclick = async () => {
+      clearMsg("loginMsg");
+      const email = el("email").value.trim();
+      const password = el("password").value;
+      if (!email || !password) return setMsg("loginMsg", "이메일/비번 넣어.", true);
 
-    async function uploadAll() {
-        if(dataList.length === 0) return alert("전송할 데이터가 없습니다.");
-        const btn = document.querySelector('.btn-main[onclick="uploadAll()"]');
-        btn.disabled = true; btn.innerText = "⏳ 동기화 중...";
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return setMsg("loginMsg", error.message, true);
 
-        try {
-            for(let item of dataList) {
-                // 1. 프로젝트(현장) 생성/업데이트
-                const { data: pData } = await supabaseClient.from('projects').upsert([{
-                    company_id: selectedComp.id, site_name: item.site, measure_date: item.date
-                }], { onConflict: 'site_name' }).select();
+      await route();
+    };
 
-                // 2. 사진 업로드 및 정보 기록
-                if(item.file) {
-                    const path = `sync/${selectedComp.id}/${item.site}/${item.loc}_${Date.now()}.jpg`;
-                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.file);
-                    await supabaseClient.from('project_photos').insert([{
-                        project_id: pData[0].id, photo_type: item.loc, storage_path: path, description: item.tm
-                    }]);
-                }
-            }
-            alert("동기화 완료! PC 프로그램에서 데이터를 불러올 수 있습니다.");
-            dataList = []; renderHistory();
-        } catch(e) { alert(e.message); } finally { btn.disabled = false; btn.innerText = "사무실로 데이터 전송 (동기화)"; }
-    }
+    el("signUpBtn").onclick = async () => {
+      clearMsg("loginMsg");
+      const email = el("email").value.trim();
+      const password = el("password").value;
+      if (!email || !password) return setMsg("loginMsg", "이메일/비번 넣어.", true);
 
-    loadInitial();
-</script>
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) return setMsg("loginMsg", error.message, true);
+
+      setMsg("loginMsg", "회원가입 요청됨. (이메일 인증 켜져있으면 메일 확인 필요)", false);
+    };
+
+    el("logoutBtn").onclick = async () => {
+      localStorage.removeItem(LS_SELECTED_COMPANY);
+      selectedCompany = null;
+      await supabase.auth.signOut();
+      await route();
+    };
+
+    // pending actions
+    el("copyUidBtn").onclick = async () => {
+      try{
+        await navigator.clipboard.writeText(el("myUid").textContent.trim());
+        setMsg("pendingMsg", "UID 복사됨. 회사 관리자한테 보내.", false);
+      }catch{
+        setMsg("pendingMsg", "복사 실패. UID 길게 눌러서 복사해.", true);
+      }
+    };
+    el("refreshAccessBtn").onclick = async () => {
+      clearMsg("pendingMsg");
+      await route();
+    };
+
+    // company -> dashboard
+    el("startBtn").onclick = async () => {
+      if (!selectedCompany) return setMsg("companyMsg", "회사부터 선택해.", true);
+
+      show("dashView");
+      el("dashCompanyName").textContent = selectedCompany.name;
+      el("dashUid").textContent = currentUser?.id || "-";
+      clearMsg("dashMsg");
+    };
+
+    el("backToCompaniesBtn").onclick = async () => {
+      await route();
+    };
+
+    // report type buttons (지금은 선택만/준비중)
+    el("typeC").onclick = () => setMsg("dashMsg", "농도 화면은 다음 단계에서 붙일게. (현장 생성/시료목록/사진)", false);
+    el("typeS").onclick = () => setMsg("dashMsg", "비산 화면은 다음 단계에서 붙일게. (장비/전후사진 선택 가능)", false);
+
+    // =========================================================
+    // boot
+    // =========================================================
+    window.addEventListener("load", async () => {
+      // 연결 표시
+      el("envBadge").textContent = "Supabase 연결됨";
+      await route();
+
+      // 세션 변경 감지
+      supabase.auth.onAuthStateChange(async () => {
+        await route();
+      });
+    });
+  </script>
 </body>
 </html>
