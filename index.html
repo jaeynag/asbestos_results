@@ -2,18 +2,35 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>석면 현장 관리 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>석면 현장 관리</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f4f7f9; padding: 15px; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 15px; shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        h2 { color: #007bff; text-align: center; margin-bottom: 25px; }
-        label { font-weight: bold; display: block; margin-top: 15px; font-size: 14px; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; font-size: 16px; font-weight: bold; margin-top: 30px; cursor: pointer; }
-        button:active { background: #0056b3; }
-        .status { margin-top: 20px; font-size: 13px; text-align: center; color: #666; }
+        :root { --primary: #007AFF; --bg: #F2F2F7; }
+        body { font-family: -apple-system, system-ui; background: var(--bg); margin: 0; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        h2 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 30px; color: #1C1C1E; }
+        
+        label { font-size: 14px; font-weight: 600; color: #8E8E93; margin-top: 20px; display: block; }
+        input, select { 
+            width: 100%; height: 50px; background: #F2F2F7; border: none; 
+            border-radius: 12px; padding: 0 15px; font-size: 16px; margin-top: 8px;
+            -webkit-appearance: none; /* 아이폰 기본 스타일 제거 */
+        }
+        
+        .upload-btn { 
+            background: var(--primary); color: white; border: none; height: 60px;
+            border-radius: 15px; font-size: 18px; font-weight: 700; margin-top: 40px;
+            width: 100%; transition: transform 0.1s;
+        }
+        .upload-btn:active { transform: scale(0.98); background: #0056b3; }
+        
+        #status { text-align: center; margin-top: 20px; font-size: 14px; color: #007AFF; font-weight: 500; }
+        .file-label {
+            display: flex; align-items: center; justify-content: center;
+            background: #E5E5EA; height: 100px; border-radius: 12px;
+            margin-top: 8px; border: 2px dashed #C7C7CC; color: #3A3A3C; font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -22,37 +39,51 @@
         
         <label>🏢 소속 업체</label>
         <select id="company_id">
-            <option value="">업체를 선택하세요</option>
+            <option value="">업체 목록 불러오는 중...</option>
         </select>
 
         <label>📍 현장명</label>
-        <input type="text" id="site_name" placeholder="예: OO초등학교 철거공사">
+        <input type="text" id="site_name" placeholder="현장 이름을 입력하세요">
 
-        <label>👷 측정자 성명</label>
-        <input type="text" id="inspector_name" placeholder="성함을 입력하세요">
+        <label>👷 측정자</label>
+        <input type="text" id="inspector_name" placeholder="성함 입력">
 
         <label>📸 현장 사진 (측정 시작)</label>
-        <input type="file" id="photo_file" accept="image/*" capture="camera">
+        <input type="file" id="photo_file" accept="image/*" capture="camera" style="display:none;" onchange="updateFileName(this)">
+        <div class="file-label" onclick="document.getElementById('photo_file').click()" id="file_display">
+            📷 여기를 눌러 사진 촬영
+        </div>
 
-        <button onclick="processAll()">데이터 서버 전송</button>
-        <div id="status" class="status">상태: 대기 중</div>
+        <button class="upload-btn" onclick="processAll()">데이터 서버 전송</button>
+        <div id="status">대기 중...</div>
     </div>
 
     <script>
         const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
         const S_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
-        const supabase = supabase.createClient(S_URL, S_KEY);
+        const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
-        // 페이지 로드 시 업체 목록 불러오기
+        function updateFileName(input) {
+            const display = document.getElementById('file_display');
+            if(input.files.length > 0) display.innerText = "✅ 사진 선택됨: " + input.files[0].name;
+        }
+
         async function loadCompanies() {
-            const { data } = await supabase.from('companies').select('id, name');
             const select = document.getElementById('company_id');
-            data.forEach(comp => {
-                const opt = document.createElement('option');
-                opt.value = comp.id;
-                opt.text = comp.name;
-                select.appendChild(opt);
-            });
+            try {
+                const { data, error } = await supabaseClient.from('companies').select('id, name');
+                if (error) throw error;
+                
+                select.innerHTML = '<option value="">업체를 선택하세요</option>';
+                data.forEach(comp => {
+                    const opt = document.createElement('option');
+                    opt.value = comp.id;
+                    opt.text = comp.name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                select.innerHTML = '<option value="">불러오기 실패: ' + e.message + '</option>';
+            }
         }
         loadCompanies();
 
@@ -63,51 +94,33 @@
             const file = document.getElementById('photo_file').files[0];
             const status = document.getElementById('status');
 
-            if (!companyId || !siteName || !file) return alert("모든 항목을 입력하고 사진을 찍어주세요.");
+            if (!companyId || !siteName || !file) return alert("항목을 모두 채워주세요!");
 
-            status.innerText = "⏳ 1/3단계: 프로젝트 생성 중...";
+            status.innerText = "⏳ 서버에 저장 중입니다...";
 
-            // 1. projects 테이블에 현장 등록
-            const { data: projectData, error: projectError } = await supabase
-                .from('projects')
-                .insert([{ 
+            const { data: projectData, error: projectError } = await supabaseClient
+                .from('projects').insert([{ 
                     company_id: companyId, 
                     site_name: siteName, 
                     inspector_name: inspector,
                     measure_date: new Date().toISOString().split('T')[0]
-                }])
-                .select();
+                }]).select();
 
-            if (projectError) return alert("프로젝트 등록 실패: " + projectError.message);
+            if (projectError) return alert("DB 에러: " + projectError.message);
             const newProjectId = projectData[0].id;
 
-            status.innerText = "⏳ 2/3단계: 사진 클라우드 전송 중...";
+            const fileName = `${newProjectId}/${Date.now()}.jpg`;
+            const { data: storageData, error: storageError } = await supabaseClient.storage
+                .from('asbestos_photos').upload(fileName, file);
 
-            // 2. Storage에 사진 업로드
-            const fileName = `photos/${newProjectId}/${Date.now()}.jpg`;
-            const { data: storageData, error: storageError } = await supabase.storage
-                .from('asbestos_photos')
-                .upload(fileName, file);
+            if (storageError) return alert("사진 에러: " + storageError.message);
 
-            if (storageError) return alert("사진 업로드 실패: " + storageError.message);
+            await supabaseClient.from('project_photos').insert([{ 
+                project_id: newProjectId, photo_type: '시작사진', storage_path: storageData.path 
+            }]);
 
-            status.innerText = "⏳ 3/3단계: 사진 기록 연결 중...";
-
-            // 3. project_photos 테이블에 사진 정보 등록
-            const { error: photoError } = await supabase
-                .from('project_photos')
-                .insert([{ 
-                    project_id: newProjectId, 
-                    photo_type: '시작사진', 
-                    storage_path: storageData.path 
-                }]);
-
-            if (photoError) {
-                status.innerText = "❌ 일부 오류 발생";
-            } else {
-                status.innerText = "✅ 전송 완료! 사무실에서 확인 가능합니다.";
-                alert("성공적으로 저장되었습니다.");
-            }
+            status.innerText = "✅ 성공적으로 전송되었습니다!";
+            alert("완료!");
         }
     </script>
 </body>
