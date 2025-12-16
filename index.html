@@ -3,257 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>대한환경 현장관리 Pro</title>
+    <title>석면현장관리 SaaS v8</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #007AFF; --success: #34C759; --danger: #FF3B30; --bg: #F2F2F7; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 12px; padding-bottom: 100px; color: #1c1c1e; }
-        
-        /* Typography & Layout */
-        h2 { font-size: 16px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px; }
-        .card { background: #fff; border-radius: 14px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 12px; }
-        
-        /* Input Design */
-        label { display: block; font-size: 11px; font-weight: 600; color: #8e8e93; margin-bottom: 4px; }
-        input { width: 100%; height: 42px; background: #F2F2F7; border: 1px solid #E5E5EA; border-radius: 8px; padding: 0 10px; font-size: 15px; outline: none; transition: 0.2s; }
-        input:focus { border-color: var(--primary); background: #fff; }
-        
-        .date-input { width: 100%; max-width: 180px; font-size: 17px; font-weight: bold; border: 2px solid var(--primary); margin-bottom: 15px; }
+        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
 
-        /* Grid System for Rows */
-        .grid-nong { display: grid; grid-template-columns: 1fr 75px 65px; gap: 8px; }
-        .grid-bi { display: grid; grid-template-columns: 1fr 75px 45px 45px; gap: 6px; }
+        /* Login & Selector View */
+        .auth-overlay { position: fixed; inset: 0; background: #fff; z-index: 1000; padding: 40px 20px; display: flex; flex-direction: column; }
+        .comp-card { background: #f9f9f9; border: 2px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .comp-card.active { border-color: var(--primary); background: #f0f7ff; }
 
-        /* Buttons */
-        .btn-cam { height: 42px; background: #fff; color: var(--primary); border: 1.5px solid var(--primary); border-radius: 8px; font-weight: 700; font-size: 12px; }
+        /* Main UI */
+        .header { background: #fff; padding: 15px; border-bottom: 1px solid #ddd; sticky: top; }
+        .card { background: #fff; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .grid-row { display: grid; grid-template-columns: 1fr 70px 60px; gap: 8px; margin-bottom: 10px; align-items: end; }
+        
+        input, select { width: 100%; height: 44px; border-radius: 8px; border: 1px solid #ddd; padding: 0 10px; background: #fdfdfd; font-size: 15px; }
+        .btn-cam { height: 44px; background: #fff; border: 2px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: bold; font-size: 12px; }
         .btn-cam.done { background: var(--success); color: #fff; border-color: var(--success); }
-        .btn-reg { width: 100%; height: 48px; background: #333; color: #fff; border: none; border-radius: 10px; font-weight: bold; margin-top: 12px; }
-        .btn-del { color: var(--danger); border: none; background: rgba(255,59,48,0.1); padding: 6px 10px; border-radius: 6px; font-size: 12px; }
-
-        /* History List */
-        .history-date { font-weight: 800; font-size: 18px; margin: 20px 0 10px 5px; color: #333; }
-        .item-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F2F2F7; }
-        .item-card:last-child { border: none; }
-        .item-info { flex: 1; }
-        .item-info b { font-size: 15px; color: #000; }
-        .item-info span { font-size: 12px; color: var(--primary); margin-left: 8px; font-weight: 600; }
         
-        /* Fixed Submit Footer */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px; background: rgba(242,242,247,0.8); backdrop-filter: blur(10px); }
-        .btn-submit { width: 100%; height: 55px; background: var(--success); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
+        /* History & Grouping */
+        .date-badge { background: #333; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 15px 0 5px 10px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; }
 
-        .tab-nav { display: flex; background: #E5E5EA; border-radius: 10px; padding: 3px; margin-bottom: 15px; }
-        .tab-item { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; color: #8E8E93; }
-        .tab-item.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); }
+        .btn-main { width: 100%; height: 55px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="page1" class="page active">
-    <div class="card" style="margin-top: 50px;">
-        <h2 style="font-size: 22px;">🏢 현장 정보 입력</h2>
-        <div style="margin-bottom:15px;">
-            <label>공사명</label>
-            <input type="text" id="site_name" placeholder="현장명을 입력하세요">
+<div id="auth-view" class="auth-overlay">
+    <h1 style="font-size: 24px; margin-bottom: 5px;">반갑습니다!</h1>
+    <p style="color: #666; margin-bottom: 30px;">접속하실 회사를 선택해주세요.</p>
+    <div id="company-list">
         </div>
-        <div>
-            <label>측정자</label>
-            <input type="text" id="inspector_name" placeholder="성함">
-        </div>
-        <button class="btn-reg" style="background:var(--primary); height: 55px; font-size: 17px;" onclick="goPage(2)">입력 시작하기</button>
-    </div>
+    <button class="btn-main" style="margin-top:auto" onclick="startWork()">현장 업무 시작</button>
 </div>
 
-<div id="page2" class="page">
-    <div class="tab-nav">
-        <div id="t-nong" class="tab-item active" onclick="setMode('농도')">석면 농도</div>
-        <div id="t-bi" class="tab-item" onclick="setMode('비산')">비산 정도</div>
+<div id="main-view" style="display:none">
+    <div class="header">
+        <span id="display-comp" style="font-weight: bold; color: var(--primary);">회사명</span>
+        <span style="color:#ccc; margin:0 5px;">|</span>
+        <span id="display-user">측정자</span>
     </div>
 
     <div class="card">
-        <label>📅 측정 날짜 선택</label>
-        <input type="date" id="measure_date" class="date-input">
+        <label style="font-size:12px; color:#888;">📅 측정 날짜</label>
+        <input type="date" id="m_date" style="border:none; font-size:20px; font-weight:bold; padding:0; height:auto; margin-bottom:15px;">
+        
+        <label style="font-size:12px; color:#888;">📍 현장(공사)명</label>
+        <input type="text" id="site_name" placeholder="가명을 입력하세요" style="margin-bottom:15px;">
 
-        <div id="area-nong" class="grid-nong">
-            <div><label>측정 위치</label><input type="text" id="loc_n" placeholder="P1"></div>
-            <div><label>시간</label><input type="time" id="time_n"></div>
-            <button class="btn-cam" id="cam-n" onclick="takePic('single')">📷 촬영</button>
+        <div id="input-grid" class="grid-row">
+            <div><label>위치</label><input type="text" id="loc" placeholder="P1"></div>
+            <div><label>시간</label><input type="time" id="tm"></div>
+            <button class="btn-cam" id="btn-cam" onclick="triggerCam()">📷 촬영</button>
         </div>
-
-        <div id="area-bi" class="grid-bi" style="display:none;">
-            <div><label>측정 위치</label><input type="text" id="loc_b" placeholder="부지경계1"></div>
-            <div><label>시간</label><input type="time" id="time_b"></div>
-            <button class="btn-cam" id="cam-b1" onclick="takePic('pre')">전</button>
-            <button class="btn-cam" id="cam-b2" onclick="takePic('post')">후</button>
-        </div>
-
-        <button class="btn-reg" onclick="pushItem()">시료 등록</button>
+        <button class="btn-main" style="height:44px; background:#444; font-size:15px;" onclick="registerItem()">시료 등록</button>
     </div>
 
-    <div id="history-list"></div>
+    <div id="history-container"></div>
 
     <div class="footer">
-        <button class="btn-submit" onclick="finalUpload()">서버로 최종 전송</button>
+        <button class="btn-main" style="background:var(--success)" onclick="uploadAll()">사무실로 데이터 전송 (동기화)</button>
     </div>
 </div>
 
-<input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="onFileSelected(this)">
+<input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="handleFile(this)">
 
 <script>
     const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
     const S_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
     const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
-    let mode = '농도';
-    let dataStore = []; 
-    let tempFile = {};
-    let activeCam = '';
+    let selectedComp = null;
+    let dataList = [];
+    let curFile = null;
 
-    document.getElementById('measure_date').value = new Date().toISOString().substring(0, 10);
-
-    function goPage(n) {
-        if(!document.getElementById('site_name').value) return alert("현장명을 적어주세요.");
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page'+n).classList.add('active');
-    }
-
-    function setMode(m) {
-        mode = m;
-        document.getElementById('t-nong').classList.toggle('active', m==='농도');
-        document.getElementById('t-bi').classList.toggle('active', m==='비산');
-        document.getElementById('area-nong').style.display = m==='농도'?'grid':'none';
-        document.getElementById('area-bi').style.display = m==='비산'?'grid':'none';
-    }
-
-    function takePic(type) { activeCam = type; document.getElementById('cam-input').click(); }
-
-    function onFileSelected(input) {
-        if(input.files[0]) {
-            tempFile[activeCam] = input.files[0];
-            const target = activeCam === 'single' ? 'cam-n' : (activeCam==='pre'?'cam-b1':'cam-b2');
-            const btn = document.getElementById(target);
-            btn.classList.add('done');
-            btn.innerText = "✅";
-        }
-    }
-
-    function pushItem() {
-        const date = document.getElementById('measure_date').value;
-        const loc = mode === '농도' ? document.getElementById('loc_n').value : document.getElementById('loc_b').value;
-        const time = mode === '농도' ? document.getElementById('time_n').value : document.getElementById('time_b').value;
-
-        if(!loc) return alert("위치를 입력하세요.");
-
-        // 같은 이름이면 시간 동기화 로직
-        dataStore.filter(i => i.loc === loc).forEach(i => i.time = time);
-
-        dataStore.push({
-            id: Date.now(),
-            date, mode, loc, time,
-            files: {...tempFile}
+    // 1. 초기 회사 목록 로드 (로그인 후 소속된 회사들을 가져오는 로직)
+    async function loadInitial() {
+        const { data } = await supabaseClient.from('companies').select('*');
+        const list = document.getElementById('company-list');
+        data.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'comp-card';
+            div.innerHTML = `<b>${c.name}</b><br><small>${c.business_no || '사업자번호 없음'}</small>`;
+            div.onclick = () => {
+                document.querySelectorAll('.comp-card').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                selectedComp = c;
+            };
+            list.appendChild(div);
         });
-
-        renderList();
-        resetInput(loc);
+        document.getElementById('m_date').value = new Date().toISOString().substring(0, 10);
     }
 
-    function resetInput(prevLoc) {
-        const nextLoc = prevLoc.replace(/(\d+)$/, (m) => parseInt(m) + 1);
-        if(mode==='농도') {
-            document.getElementById('loc_n').value = nextLoc;
-            document.getElementById('cam-n').classList.remove('done');
-            document.getElementById('cam-n').innerText = "📷 촬영";
-        } else {
-            document.getElementById('loc_b').value = nextLoc;
-            document.getElementById('cam-b1').classList.remove('done');
-            document.getElementById('cam-b2').classList.remove('done');
-            document.getElementById('cam-b1').innerText = "전";
-            document.getElementById('cam-b2').innerText = "후";
+    function startWork() {
+        if(!selectedComp) return alert("회사를 선택해주세요.");
+        document.getElementById('auth-view').style.display = 'none';
+        document.getElementById('main-view').style.display = 'block';
+        document.getElementById('display-comp').innerText = selectedComp.name;
+        document.getElementById('display-user').innerText = "관리자"; // 로그인 연동 시 사용자 이름
+    }
+
+    function triggerCam() { document.getElementById('cam-input').click(); }
+    function handleFile(i) {
+        if(i.files[0]) {
+            curFile = i.files[0];
+            document.getElementById('btn-cam').classList.add('done');
+            document.getElementById('btn-cam').innerText = "✅ 완료";
         }
-        tempFile = {};
     }
 
-    function renderList() {
-        const container = document.getElementById('history-list');
-        container.innerHTML = "";
+    function registerItem() {
+        const date = document.getElementById('m_date').value;
+        const site = document.getElementById('site_name').value;
+        const loc = document.getElementById('loc').value;
+        const tm = document.getElementById('tm').value;
+
+        if(!site || !loc) return alert("현장명과 위치를 확인하세요.");
+
+        dataList.push({ id: Date.now(), date, site, loc, tm, file: curFile });
+        renderHistory();
         
-        const dates = [...new Set(dataStore.map(d => d.date))].sort().reverse();
+        // 다음 입력 자동 준비
+        document.getElementById('loc').value = loc.replace(/(\d+)$/, (m) => parseInt(m) + 1);
+        document.getElementById('btn-cam').classList.remove('done');
+        document.getElementById('btn-cam').innerText = "📷 촬영";
+        curFile = null;
+    }
 
-        dates.forEach(date => {
-            const dateDiv = document.createElement('div');
-            dateDiv.innerHTML = `<div class="history-date">${date}</div>`;
-            const card = document.createElement('div');
-            card.className = 'card';
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
+        const dates = [...new Set(dataList.map(d => d.date))].sort().reverse();
 
-            dataStore.filter(i => i.date === date).forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'item-card';
-                const photoInfo = Object.keys(item.files).length > 0 ? "📸 OK" : "⚪ NO";
-                row.innerHTML = `
-                    <div class="item-info" onclick="editItem(${item.id})">
-                        <b>${item.loc}</b><span>${item.time}</span> <small style="margin-left:10px; color:#888;">${photoInfo}</small>
-                    </div>
-                    <button class="btn-del" onclick="removeItem(${item.id})">삭제</button>
-                `;
-                card.appendChild(row);
+        dates.forEach(d => {
+            container.innerHTML += `<span class="date-badge">${d}</span>`;
+            dataList.filter(i => i.date === d).forEach(item => {
+                container.innerHTML += `
+                    <div class="history-item">
+                        <div><b>${item.loc}</b> <small style="color:#888; margin-left:8px;">${item.tm}</small><br>
+                        <span style="font-size:11px; color:var(--primary)">${item.site}</span></div>
+                        <button style="border:none; background:none; color:#FF3B30;" onclick="removeItem(${item.id})">삭제</button>
+                    </div>`;
             });
-            dateDiv.appendChild(card);
-            container.appendChild(dateDiv);
         });
     }
 
     function removeItem(id) {
-        if(confirm("삭제하시겠습니까?")) {
-            dataStore = dataStore.filter(i => i.id !== id);
-            renderList();
-        }
+        dataList = dataList.filter(i => i.id !== id);
+        renderHistory();
     }
 
-    function editItem(id) {
-        const item = dataStore.find(i => i.id === id);
-        document.getElementById('measure_date').value = item.date;
-        setMode(item.mode);
-        if(item.mode === '농도') {
-            document.getElementById('loc_n').value = item.loc;
-            document.getElementById('time_n').value = item.time;
-        } else {
-            document.getElementById('loc_b').value = item.loc;
-            document.getElementById('time_b').value = item.time;
-        }
-        dataStore = dataStore.filter(i => i.id !== id);
-        renderList();
-        window.scrollTo(0,0);
-    }
-
-    async function finalUpload() {
-        if(dataStore.length === 0) return alert("등록된 시료가 없습니다.");
-        const btn = document.querySelector('.btn-submit');
-        btn.disabled = true;
-        btn.innerText = "⏳ 전송 중...";
+    async function uploadAll() {
+        if(dataList.length === 0) return alert("전송할 데이터가 없습니다.");
+        const btn = document.querySelector('.btn-main[onclick="uploadAll()"]');
+        btn.disabled = true; btn.innerText = "⏳ 동기화 중...";
 
         try {
-            const { data: pData } = await supabaseClient.from('projects').upsert([{
-                site_name: document.getElementById('site_name').value,
-                inspector_name: document.getElementById('inspector_name').value
-            }], { onConflict: 'site_name' }).select();
+            for(let item of dataList) {
+                // 1. 프로젝트(현장) 생성/업데이트
+                const { data: pData } = await supabaseClient.from('projects').upsert([{
+                    company_id: selectedComp.id, site_name: item.site, measure_date: item.date
+                }], { onConflict: 'site_name' }).select();
 
-            for(let item of dataStore) {
-                for(let key in item.files) {
-                    const path = `${item.mode}/${document.getElementById('site_name').value}/${item.date}_${item.loc}_${key}.jpg`;
-                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.files[key]);
+                // 2. 사진 업로드 및 정보 기록
+                if(item.file) {
+                    const path = `sync/${selectedComp.id}/${item.site}/${item.loc}_${Date.now()}.jpg`;
+                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.file);
                     await supabaseClient.from('project_photos').insert([{
-                        project_id: pData[0].id,
-                        photo_type: `${item.loc}_${key}`,
-                        storage_path: path,
-                        description: `${item.date} ${item.time}`
+                        project_id: pData[0].id, photo_type: item.loc, storage_path: path, description: item.tm
                     }]);
                 }
             }
-            alert("서버 전송이 완료되었습니다!");
-            dataStore = []; renderList();
-        } catch (e) { alert(e.message); btn.disabled = false; btn.innerText = "서버 전송"; }
+            alert("동기화 완료! PC 프로그램에서 데이터를 불러올 수 있습니다.");
+            dataList = []; renderHistory();
+        } catch(e) { alert(e.message); } finally { btn.disabled = false; btn.innerText = "사무실로 데이터 전송 (동기화)"; }
     }
+
+    loadInitial();
 </script>
 </body>
 </html>
