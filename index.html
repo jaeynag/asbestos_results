@@ -3,89 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>대한환경 현장관리 v7</title>
+    <title>대한환경 현장관리 Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #007AFF; --success: #34C759; --danger: #FF3B30; --bg: #F2F2F7; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-size: 14px; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 12px; padding-bottom: 100px; color: #1c1c1e; }
         
-        .page { display: none; }
-        .page.active { display: block; }
+        /* Typography & Layout */
+        h2 { font-size: 16px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px; }
+        .card { background: #fff; border-radius: 14px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 12px; }
         
-        .card { background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        h2 { font-size: 15px; margin: 0 0 10px 0; color: #1c1c1e; border-left: 4px solid var(--primary); padding-left: 8px; }
+        /* Input Design */
+        label { display: block; font-size: 11px; font-weight: 600; color: #8e8e93; margin-bottom: 4px; }
+        input { width: 100%; height: 42px; background: #F2F2F7; border: 1px solid #E5E5EA; border-radius: 8px; padding: 0 10px; font-size: 15px; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary); background: #fff; }
+        
+        .date-input { width: 100%; max-width: 180px; font-size: 17px; font-weight: bold; border: 2px solid var(--primary); margin-bottom: 15px; }
 
-        input, select { width: 100%; height: 40px; background: #F2F2F7; border: 1px solid #DDD; border-radius: 6px; padding: 0 8px; outline: none; }
-        .date-input { width: 150px; font-weight: bold; margin-bottom: 10px; }
+        /* Grid System for Rows */
+        .grid-nong { display: grid; grid-template-columns: 1fr 75px 65px; gap: 8px; }
+        .grid-bi { display: grid; grid-template-columns: 1fr 75px 45px 45px; gap: 6px; }
 
-        /* 입력 영역 그리드 - 시간 칸 축소 */
-        .input-grid { display: grid; grid-template-columns: 1fr 80px 70px; gap: 5px; align-items: end; }
-        .input-grid-bi { display: grid; grid-template-columns: 1fr 80px 45px 45px; gap: 4px; align-items: end; }
+        /* Buttons */
+        .btn-cam { height: 42px; background: #fff; color: var(--primary); border: 1.5px solid var(--primary); border-radius: 8px; font-weight: 700; font-size: 12px; }
+        .btn-cam.done { background: var(--success); color: #fff; border-color: var(--success); }
+        .btn-reg { width: 100%; height: 48px; background: #333; color: #fff; border: none; border-radius: 10px; font-weight: bold; margin-top: 12px; }
+        .btn-del { color: var(--danger); border: none; background: rgba(255,59,48,0.1); padding: 6px 10px; border-radius: 6px; font-size: 12px; }
 
-        .cam-btn { height: 40px; background: #E8F2FF; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; font-weight: bold; font-size: 11px; }
-        .cam-btn.done { background: var(--success) !important; border-color: #28a745 !important; color: white !important; }
-
-        /* 등록된 시료 스타일 */
-        .date-group { margin-top: 15px; }
-        .date-header { font-weight: bold; color: #555; margin: 10px 0 5px 5px; display: block; }
-        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px; border-bottom: 1px solid #eee; }
-        .item-row:last-child { border: none; }
+        /* History List */
+        .history-date { font-weight: 800; font-size: 18px; margin: 20px 0 10px 5px; color: #333; }
+        .item-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F2F2F7; }
+        .item-card:last-child { border: none; }
         .item-info { flex: 1; }
-        .item-info b { font-size: 14px; }
-        .item-info span { font-size: 11px; color: #888; margin-left: 5px; }
+        .item-info b { font-size: 15px; color: #000; }
+        .item-info span { font-size: 12px; color: var(--primary); margin-left: 8px; font-weight: 600; }
         
-        .btn-del { color: var(--danger); border: none; background: none; font-weight: bold; padding: 5px; margin-left: 10px; }
-        .btn-reg { background: #555; color: white; border: none; width: 100%; height: 45px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
-        .btn-submit { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 55px; background: var(--success); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; z-index: 100; }
+        /* Fixed Submit Footer */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px; background: rgba(242,242,247,0.8); backdrop-filter: blur(10px); }
+        .btn-submit { width: 100%; height: 55px; background: var(--success); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
 
-        .tab-container { display: flex; background: #E5E5EA; border-radius: 8px; padding: 2px; margin-bottom: 10px; }
-        .tab { flex: 1; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: #8E8E93; }
-        .tab.active { background: white; color: var(--primary); }
+        .tab-nav { display: flex; background: #E5E5EA; border-radius: 10px; padding: 3px; margin-bottom: 15px; }
+        .tab-item { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; color: #8E8E93; }
+        .tab-item.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
 <div id="page1" class="page active">
-    <div class="card">
-        <h2>🏗️ 현장 정보</h2>
-        <input type="text" id="site_name" placeholder="현장명" style="margin-bottom:10px;">
-        <input type="text" id="inspector_name" placeholder="측정자 성함">
-        <button class="btn-reg" style="background:var(--primary);" onclick="goPage(2)">다음 단계 〉</button>
+    <div class="card" style="margin-top: 50px;">
+        <h2 style="font-size: 22px;">🏢 현장 정보 입력</h2>
+        <div style="margin-bottom:15px;">
+            <label>공사명</label>
+            <input type="text" id="site_name" placeholder="현장명을 입력하세요">
+        </div>
+        <div>
+            <label>측정자</label>
+            <input type="text" id="inspector_name" placeholder="성함">
+        </div>
+        <button class="btn-reg" style="background:var(--primary); height: 55px; font-size: 17px;" onclick="goPage(2)">입력 시작하기</button>
     </div>
 </div>
 
 <div id="page2" class="page">
-    <div class="tab-container">
-        <div id="tab-nong" class="tab active" onclick="switchMode('농도')">석면 농도</div>
-        <div id="tab-bi" class="tab" onclick="switchMode('비산')">비산 정도</div>
+    <div class="tab-nav">
+        <div id="t-nong" class="tab-item active" onclick="setMode('농도')">석면 농도</div>
+        <div id="t-bi" class="tab-item" onclick="setMode('비산')">비산 정도</div>
     </div>
 
     <div class="card">
+        <label>📅 측정 날짜 선택</label>
         <input type="date" id="measure_date" class="date-input">
-        
-        <div id="input-area-nong" class="input-grid">
-            <div><label>위치</label><input type="text" id="loc_n"></div>
+
+        <div id="area-nong" class="grid-nong">
+            <div><label>측정 위치</label><input type="text" id="loc_n" placeholder="P1"></div>
             <div><label>시간</label><input type="time" id="time_n"></div>
-            <button class="cam-btn" id="btn-cam-n" onclick="openCam('single')">📷 촬영</button>
+            <button class="btn-cam" id="cam-n" onclick="takePic('single')">📷 촬영</button>
         </div>
 
-        <div id="input-area-bi" class="input-grid-bi" style="display:none;">
-            <div><label>위치</label><input type="text" id="loc_b"></div>
+        <div id="area-bi" class="grid-bi" style="display:none;">
+            <div><label>측정 위치</label><input type="text" id="loc_b" placeholder="부지경계1"></div>
             <div><label>시간</label><input type="time" id="time_b"></div>
-            <button class="cam-btn" id="btn-cam-b1" onclick="openCam('pre')">전</button>
-            <button class="cam-btn" id="btn-cam-b2" onclick="openCam('post')">후</button>
+            <button class="btn-cam" id="cam-b1" onclick="takePic('pre')">전</button>
+            <button class="btn-cam" id="cam-b2" onclick="takePic('post')">후</button>
         </div>
 
-        <button class="btn-reg" onclick="registerItem()">시료 등록</button>
+        <button class="btn-reg" onclick="pushItem()">시료 등록</button>
     </div>
 
-    <div id="history-container"></div>
+    <div id="history-list"></div>
 
-    <button class="btn-submit" onclick="submitToSupabase()">최종 전송 (서버 업로드)</button>
+    <div class="footer">
+        <button class="btn-submit" onclick="finalUpload()">서버로 최종 전송</button>
+    </div>
 </div>
 
-<input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="handleFile(this)">
+<input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="onFileSelected(this)">
 
 <script>
     const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
@@ -93,126 +106,114 @@
     const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
     let mode = '농도';
-    let items = []; // 등록된 모든 시료 데이터
-    let tempPhotos = {}; // 현재 촬영 중인 사진 임시 보관
-    let curCamType = '';
+    let dataStore = []; 
+    let tempFile = {};
+    let activeCam = '';
 
     document.getElementById('measure_date').value = new Date().toISOString().substring(0, 10);
 
     function goPage(n) {
-        if(!document.getElementById('site_name').value) return alert("현장명을 입력해주세요.");
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        if(!document.getElementById('site_name').value) return alert("현장명을 적어주세요.");
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page'+n).classList.add('active');
     }
 
-    function switchMode(m) {
+    function setMode(m) {
         mode = m;
-        document.getElementById('tab-nong').classList.toggle('active', m==='농도');
-        document.getElementById('tab-bi').classList.toggle('active', m==='비산');
-        document.getElementById('input-area-nong').style.display = m==='농도'?'grid':'none';
-        document.getElementById('input-area-bi').style.display = m==='비산'?'grid':'none';
+        document.getElementById('t-nong').classList.toggle('active', m==='농도');
+        document.getElementById('t-bi').classList.toggle('active', m==='비산');
+        document.getElementById('area-nong').style.display = m==='농도'?'grid':'none';
+        document.getElementById('area-bi').style.display = m==='비산'?'grid':'none';
     }
 
-    // 사진 촬영
-    function openCam(type) {
-        curCamType = type;
-        document.getElementById('cam-input').click();
-    }
+    function takePic(type) { activeCam = type; document.getElementById('cam-input').click(); }
 
-    function handleFile(i) {
-        if(i.files[0]) {
-            tempPhotos[curCamType] = i.files[0];
-            const btnId = curCamType === 'single' ? 'btn-cam-n' : (curCamType === 'pre' ? 'btn-cam-b1' : 'btn-cam-b2');
-            document.getElementById(btnId).classList.add('done');
-            document.getElementById(btnId).innerText = "✅";
+    function onFileSelected(input) {
+        if(input.files[0]) {
+            tempFile[activeCam] = input.files[0];
+            const target = activeCam === 'single' ? 'cam-n' : (activeCam==='pre'?'cam-b1':'cam-b2');
+            const btn = document.getElementById(target);
+            btn.classList.add('done');
+            btn.innerText = "✅";
         }
     }
 
-    // 시료 등록 (리스트로 추가)
-    function registerItem() {
+    function pushItem() {
         const date = document.getElementById('measure_date').value;
         const loc = mode === '농도' ? document.getElementById('loc_n').value : document.getElementById('loc_b').value;
         const time = mode === '농도' ? document.getElementById('time_n').value : document.getElementById('time_b').value;
 
         if(!loc) return alert("위치를 입력하세요.");
 
-        const newItem = {
+        // 같은 이름이면 시간 동기화 로직
+        dataStore.filter(i => i.loc === loc).forEach(i => i.time = time);
+
+        dataStore.push({
             id: Date.now(),
-            date: date,
-            mode: mode,
-            loc: loc,
-            time: time,
-            photos: {...tempPhotos}
-        };
+            date, mode, loc, time,
+            files: {...tempFile}
+        });
 
-        items.push(newItem);
-        renderHistory();
-        
-        // 입력창 초기화
+        renderList();
+        resetInput(loc);
+    }
+
+    function resetInput(prevLoc) {
+        const nextLoc = prevLoc.replace(/(\d+)$/, (m) => parseInt(m) + 1);
         if(mode==='농도') {
-            document.getElementById('loc_n').value = autoIncrement(loc);
-            document.getElementById('btn-cam-n').classList.remove('done');
-            document.getElementById('btn-cam-n').innerText = "📷 촬영";
+            document.getElementById('loc_n').value = nextLoc;
+            document.getElementById('cam-n').classList.remove('done');
+            document.getElementById('cam-n').innerText = "📷 촬영";
         } else {
-            document.getElementById('loc_b').value = autoIncrement(loc);
-            ['btn-cam-b1', 'btn-cam-b2'].forEach(id => {
-                document.getElementById(id).classList.remove('done');
-                document.getElementById(id).innerText = (id==='btn-cam-b1'?'전':'후');
-            });
+            document.getElementById('loc_b').value = nextLoc;
+            document.getElementById('cam-b1').classList.remove('done');
+            document.getElementById('cam-b2').classList.remove('done');
+            document.getElementById('cam-b1').innerText = "전";
+            document.getElementById('cam-b2').innerText = "후";
         }
-        tempPhotos = {};
+        tempFile = {};
     }
 
-    function autoIncrement(text) {
-        return text.replace(/(\d+)$/, (m) => parseInt(m) + 1);
-    }
-
-    // 날짜별 리스트 렌더링
-    function renderHistory() {
-        const container = document.getElementById('history-container');
+    function renderList() {
+        const container = document.getElementById('history-list');
         container.innerHTML = "";
+        
+        const dates = [...new Set(dataStore.map(d => d.date))].sort().reverse();
 
-        // 날짜순 정렬
-        const sortedDates = [...new Set(items.map(i => i.date))].sort().reverse();
-
-        sortedDates.forEach(date => {
-            const dateGroup = document.createElement('div');
-            dateGroup.className = 'date-group';
-            dateGroup.innerHTML = `<span class="date-header">${date}</span>`;
-            
+        dates.forEach(date => {
+            const dateDiv = document.createElement('div');
+            dateDiv.innerHTML = `<div class="history-date">${date}</div>`;
             const card = document.createElement('div');
             card.className = 'card';
-            card.style.padding = "0";
 
-            items.filter(i => i.date === date).forEach(item => {
+            dataStore.filter(i => i.date === date).forEach(item => {
                 const row = document.createElement('div');
-                row.className = 'item-row';
-                const hasPhoto = Object.keys(item.photos).length > 0 ? "✅사진" : "❌무제";
+                row.className = 'item-card';
+                const photoInfo = Object.keys(item.files).length > 0 ? "📸 OK" : "⚪ NO";
                 row.innerHTML = `
                     <div class="item-info" onclick="editItem(${item.id})">
-                        <b>${item.loc}</b> <span>${item.time}</span> <small style="color:var(--primary)">(${hasPhoto})</small>
+                        <b>${item.loc}</b><span>${item.time}</span> <small style="margin-left:10px; color:#888;">${photoInfo}</small>
                     </div>
-                    <button class="btn-del" onclick="deleteItem(${item.id})">삭제</button>
+                    <button class="btn-del" onclick="removeItem(${item.id})">삭제</button>
                 `;
                 card.appendChild(row);
             });
-            dateGroup.appendChild(card);
-            container.appendChild(dateGroup);
+            dateDiv.appendChild(card);
+            container.appendChild(dateDiv);
         });
     }
 
-    function deleteItem(id) {
-        if(confirm("이 시료를 삭제할까요?")) {
-            items = items.filter(i => i.id !== id);
-            renderHistory();
+    function removeItem(id) {
+        if(confirm("삭제하시겠습니까?")) {
+            dataStore = dataStore.filter(i => i.id !== id);
+            renderList();
         }
     }
 
     function editItem(id) {
-        const item = items.find(i => i.id === id);
-        if(!item) return;
+        const item = dataStore.find(i => i.id === id);
         document.getElementById('measure_date').value = item.date;
-        switchMode(item.mode);
+        setMode(item.mode);
         if(item.mode === '농도') {
             document.getElementById('loc_n').value = item.loc;
             document.getElementById('time_n').value = item.time;
@@ -220,29 +221,27 @@
             document.getElementById('loc_b').value = item.loc;
             document.getElementById('time_b').value = item.time;
         }
-        // 수정 시 기존 항목 삭제 후 다시 등록하는 방식
-        items = items.filter(i => i.id !== id);
-        renderHistory();
+        dataStore = dataStore.filter(i => i.id !== id);
+        renderList();
         window.scrollTo(0,0);
     }
 
-    async function submitToSupabase() {
-        if(items.length === 0) return alert("전송할 데이터가 없습니다.");
-        if(!confirm("모든 데이터를 서버로 전송하시겠습니까?")) return;
-
-        const site = document.getElementById('site_name').value;
-        const inspector = document.getElementById('inspector_name').value;
+    async function finalUpload() {
+        if(dataStore.length === 0) return alert("등록된 시료가 없습니다.");
+        const btn = document.querySelector('.btn-submit');
+        btn.disabled = true;
+        btn.innerText = "⏳ 전송 중...";
 
         try {
-            // 프로젝트 생성
             const { data: pData } = await supabaseClient.from('projects').upsert([{
-                site_name: site, inspector_name: inspector
+                site_name: document.getElementById('site_name').value,
+                inspector_name: document.getElementById('inspector_name').value
             }], { onConflict: 'site_name' }).select();
 
-            for(let item of items) {
-                for(let key in item.photos) {
-                    const path = `${item.mode}/${site}/${item.date}_${item.loc}_${key}.jpg`;
-                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.photos[key]);
+            for(let item of dataStore) {
+                for(let key in item.files) {
+                    const path = `${item.mode}/${document.getElementById('site_name').value}/${item.date}_${item.loc}_${key}.jpg`;
+                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.files[key]);
                     await supabaseClient.from('project_photos').insert([{
                         project_id: pData[0].id,
                         photo_type: `${item.loc}_${key}`,
@@ -251,9 +250,9 @@
                     }]);
                 }
             }
-            alert("서버 전송 완료!");
-            items = []; renderHistory();
-        } catch (e) { alert("오류: " + e.message); }
+            alert("서버 전송이 완료되었습니다!");
+            dataStore = []; renderList();
+        } catch (e) { alert(e.message); btn.disabled = false; btn.innerText = "서버 전송"; }
     }
 </script>
 </body>
