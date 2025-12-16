@@ -3,75 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>대한환경 현장관리 시스템</title>
+    <title>대한환경 현장시스템 v4</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; --card: #FFFFFF; }
+        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
-        .page { display: none; padding: 20px; min-height: 100vh; }
+        .page { display: none; padding: 15px; min-height: 100vh; }
         .page.active { display: block; }
         
-        .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        h2 { font-size: 1.1rem; margin-top: 0; color: #1c1c1e; border-left: 4px solid var(--primary); padding-left: 10px; }
+        .card { background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        h2 { font-size: 1rem; margin: 0 0 12px 0; color: #1c1c1e; border-left: 4px solid var(--primary); padding-left: 8px; }
 
-        label { display: block; font-size: 13px; font-weight: 600; color: #8e8e93; margin-bottom: 5px; margin-top: 10px; }
+        label { display: block; font-size: 12px; font-weight: 600; color: #8e8e93; margin-bottom: 4px; }
         input, select { 
-            width: 100%; height: 48px; background: #F2F2F7; border: 1px solid #DDD; 
-            border-radius: 10px; padding: 0 12px; font-size: 16px; margin-bottom: 10px; outline: none;
+            width: 100%; height: 44px; background: #F2F2F7; border: 1px solid #DDD; 
+            border-radius: 8px; padding: 0 10px; font-size: 15px; margin-bottom: 10px; outline: none;
         }
 
-        /* 탭 버튼 스타일 */
-        .tab-container { display: flex; background: #E5E5EA; border-radius: 12px; padding: 3px; margin-bottom: 20px; }
-        .tab { flex: 1; text-align: center; padding: 12px; border-radius: 9px; font-weight: bold; font-size: 14px; cursor: pointer; color: #8E8E93; }
+        /* 탭 버튼 */
+        .tab-container { display: flex; background: #E5E5EA; border-radius: 10px; padding: 2px; margin-bottom: 15px; }
+        .tab { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; color: #8E8E93; }
         .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
         /* 시료 리스트 */
-        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #ddd; }
+        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 8px; border: 1px solid #ddd; }
         .item-info { flex: 1; }
-        .item-info div { font-size: 15px; font-weight: 600; }
-        .item-info span { font-size: 12px; color: var(--primary); font-weight: 500; }
+        .item-info b { display: block; font-size: 14px; }
+        .item-info span { font-size: 11px; color: var(--primary); }
         
-        /* 사진 버튼 상태별 디자인 */
         .cam-btn { 
-            background: #E8F2FF; color: var(--primary); border: 2px solid var(--primary); 
-            min-width: 65px; height: 45px; border-radius: 10px; font-weight: bold; 
-            font-size: 13px; margin-left: 5px; transition: all 0.2s;
+            background: #E8F2FF; color: var(--primary); border: 1px solid var(--primary); 
+            min-width: 55px; height: 38px; border-radius: 6px; font-weight: bold; font-size: 12px; margin-left: 4px;
         }
-        .cam-btn.done { 
-            background: var(--success) !important; 
-            border-color: #28a745 !important; 
-            color: white !important; 
-        }
+        .cam-btn.done { background: var(--success) !important; border-color: #28a745 !important; color: white !important; }
 
-        /* 하단 고정 버튼 */
-        .nav-btn { width: 100%; height: 55px; border-radius: 14px; font-size: 17px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        .nav-btn { width: 100%; height: 50px; border-radius: 10px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; }
         .btn-next { background: var(--primary); color: white; margin-top: 10px; }
-        .btn-add { background: #555; color: white; margin-top: 5px; }
-        .btn-next:active, .btn-add:active { opacity: 0.7; transform: scale(0.98); }
-        .status-bar { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-bottom: 30px; }
+        .btn-add { background: #444; color: white; margin-top: 5px; height: 40px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="page1" class="page active">
     <div class="card">
-        <h2>🏗️ 기본 정보 입력</h2>
-        
-        <label>📅 측정 일자</label>
-        <input type="date" id="measure_date">
-
+        <h2>🏗️ 현장 정보</h2>
         <label>🏢 소속 업체</label>
-        <select id="company_id"><option value="">업체 로딩 중...</option></select>
-
+        <select id="company_id"></select>
         <label>📍 공사명 (가명 가능)</label>
         <input type="text" id="site_name" placeholder="현장명을 입력하세요">
-
         <label>👷 측정자</label>
-        <input type="text" id="inspector_name" placeholder="성함 입력">
-        
-        <button class="nav-btn btn-next" onclick="goPage(2)">다음 단계 (시료 추가) 〉</button>
+        <input type="text" id="inspector_name" placeholder="성함">
+        <button class="nav-btn btn-next" onclick="goPage(2)">다음 (시료 입력) 〉</button>
     </div>
 </div>
 
@@ -81,31 +65,38 @@
         <div id="tab-bi" class="tab" onclick="switchMode('비산')">비산 정도</div>
     </div>
 
-    <div class="card" id="input-area">
-        <h2 id="mode-title">농도 시료 추가</h2>
-        <label>📍 측정 위치</label>
-        <input type="text" id="loc_name" placeholder="예: 거실1, P1 등">
-        
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label>⏰ 시작 시간</label>
-                <input type="time" id="start_time">
-            </div>
-            <div style="flex: 1;">
-                <label>⏰ 종료 시간</label>
-                <input type="time" id="end_time">
-            </div>
+    <div class="card">
+        <h2>📅 측정 날짜 & 포인트</h2>
+        <label>날짜 선택</label>
+        <input type="date" id="measure_date">
+
+        <div id="form-nong">
+            <label>측정 위치 (지점명)</label>
+            <input type="text" id="loc_nong" placeholder="예: P1, 거실">
+            <label>시작 시간</label>
+            <input type="time" id="time_nong">
         </div>
 
-        <button class="nav-btn btn-add" onclick="addItem()">+ 목록에 시료 추가</button>
+        <div id="form-bi" style="display:none;">
+            <label>상황 선택</label>
+            <select id="bi_status" onchange="updateBiPoints()">
+                <option value="사전">1. 사전측정</option>
+                <option value="철거">2. 철거(작업 중)</option>
+                <option value="보관">3. 폐기물 보관</option>
+            </select>
+            <label>측정 지점 선택</label>
+            <select id="loc_bi"></select>
+            <label>시작 시간</label>
+            <input type="time" id="time_bi">
+        </div>
+
+        <button class="nav-btn btn-add" onclick="addItem()">+ 목록에 추가</button>
     </div>
 
-    <div id="list-container">
-        </div>
+    <div id="list-container"></div>
 
-    <button class="nav-btn btn-next" id="btn-finish" onclick="finishAll()" style="background:#34C759; margin-top:30px;">최종 데이터 서버 전송</button>
-    <button class="nav-btn" onclick="goPage(1)" style="background:none; color:#888; font-size:14px; margin-top:10px;">〈 이전 단계 (정보 수정)</button>
-    <div id="status" class="status-bar">서버 연결됨</div>
+    <button class="nav-btn btn-next" id="btn-finish" onclick="finishAll()" style="background:var(--success); margin-top:20px;">서버 전송 및 완료</button>
+    <button onclick="goPage(1)" style="width:100%; background:none; border:none; color:#888; font-size:13px; margin-top:10px;">〈 공사 정보 수정</button>
 </div>
 
 <input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="handleFile(this)">
@@ -117,108 +108,71 @@
 
     let mode = '농도';
     let items = [];
-    let currentCamTarget = null;
+    let currentTarget = null;
 
-    // 초기 설정: 오늘 날짜 세팅
     document.getElementById('measure_date').value = new Date().toISOString().substring(0, 10);
 
-    function goPage(num) {
-        if(num === 2 && !document.getElementById('site_name').value) {
-            alert("현장명을 입력해주세요!");
-            return;
-        }
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page' + num).classList.add('active');
-        window.scrollTo(0,0);
+    const biPointsMap = {
+        "사전": ["부지경계1", "부지경계2", "부지경계3", "부지경계4"],
+        "철거": ["부지경계1", "부지경계2", "부지경계3", "부지경계4", "위생설비", "음압기배출구", "작업장내부", "작업장주변", "폐기물반출구", "폐기물보관소"],
+        "보관": ["폐기물보관소1", "폐기물보관소2"]
+    };
+
+    function goPage(n) {
+        if(n===2 && !document.getElementById('site_name').value) return alert("현장명을 입력하세요.");
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.getElementById('page'+n).classList.add('active');
+        updateBiPoints();
     }
 
     function switchMode(m) {
-        if(items.length > 0 && !confirm("모드 변경 시 현재 목록이 초기화됩니다. 변경하시겠습니까?")) return;
         mode = m;
-        items = [];
-        renderList();
-        document.getElementById('tab-nong').classList.toggle('active', m === '농도');
-        document.getElementById('tab-bi').classList.toggle('active', m === '비산');
-        document.getElementById('mode-title').innerText = m === '농도' ? '농도 시료 추가' : '비산 지점 추가';
+        items = []; renderList();
+        document.getElementById('tab-nong').classList.toggle('active', m==='농도');
+        document.getElementById('tab-bi').classList.toggle('active', m==='비산');
+        document.getElementById('form-nong').style.display = m==='농도'?'block':'none';
+        document.getElementById('form-bi').style.display = m==='비산'?'block':'none';
+    }
+
+    function updateBiPoints() {
+        const status = document.getElementById('bi_status').value;
+        const sel = document.getElementById('loc_bi');
+        sel.innerHTML = "";
+        biPointsMap[status].forEach(p => { sel.innerHTML += `<option value="${p}">${p}</option>`; });
     }
 
     function addItem() {
-        const loc = document.getElementById('loc_name').value;
-        const start = document.getElementById('start_time').value;
-        const end = document.getElementById('end_time').value;
+        const loc = mode === '농도' ? document.getElementById('loc_nong').value : document.getElementById('loc_bi').value;
+        const time = mode === '농도' ? document.getElementById('time_nong').value : document.getElementById('time_bi').value;
         if(!loc) return alert("위치를 입력하세요.");
 
-        items.push({
-            id: Date.now(),
-            location: loc,
-            time: (start || end) ? `${start} ~ ${end}` : '시간 미입력',
-            photo: null,
-            photo_before: null,
-            photo_after: null
-        });
+        items.push({ id: Date.now(), location: loc, time: time || "시간미정", photo: null, photo_before: null, photo_after: null });
         renderList();
-        document.getElementById('loc_name').value = "";
+        if(mode==='농도') document.getElementById('loc_nong').value = "";
     }
 
     function renderList() {
         const container = document.getElementById('list-container');
         container.innerHTML = "";
-        
         items.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            
-            let photoBtns = "";
-            if(mode === '농도') {
-                const btnText = item.photo ? "✅ 완료" : "📷 촬영";
-                const btnClass = item.photo ? "cam-btn done" : "cam-btn";
-                photoBtns = `<button class="${btnClass}" onclick="openCam(${item.id}, 'photo')">${btnText}</button>`;
-            } else {
-                const bText = item.photo_before ? "✅ 전" : "전";
-                const bClass = item.photo_before ? "cam-btn done" : "cam-btn";
-                const aText = item.photo_after ? "✅ 후" : "후";
-                const aClass = item.photo_after ? "cam-btn done" : "cam-btn";
-                photoBtns = `
-                    <button class="${bClass}" onclick="openCam(${item.id}, 'photo_before')">${bText}</button>
-                    <button class="${aClass}" onclick="openCam(${item.id}, 'photo_after')">${aText}</button>
-                `;
-            }
-
-            row.innerHTML = `
-                <div class="item-info">
-                    <div>${item.location}</div>
-                    <span>⏰ ${item.time}</span>
-                </div>
-                <div>${photoBtns}</div>
-            `;
+            const row = document.createElement('div'); row.className = 'item-row';
+            let btns = mode==='농도' 
+                ? `<button class="cam-btn ${item.photo?'done':''}" onclick="openCam(${item.id}, 'photo')">${item.photo?'✅ 완료':'📷 촬영'}</button>`
+                : `<button class="cam-btn ${item.photo_before?'done':''}" onclick="openCam(${item.id}, 'photo_before')">${item.photo_before?'✅ 전':'전'}</button>
+                   <button class="cam-btn ${item.photo_after?'done':''}" onclick="openCam(${item.id}, 'photo_after')">${item.photo_after?'✅ 후':'후'}</button>`;
+            row.innerHTML = `<div class="item-info"><b>${item.location}</b><span>시작: ${item.time}</span></div><div>${btns}</div>`;
             container.appendChild(row);
         });
     }
 
-    function openCam(id, type) {
-        currentCamTarget = { id, type };
-        document.getElementById('cam-input').click();
-    }
-
-    function handleFile(input) {
-        if(input.files[0]) {
-            const item = items.find(i => i.id === currentCamTarget.id);
-            item[currentCamTarget.type] = input.files[0];
-            renderList(); // 즉시 리스트 리렌더링하여 버튼 상태 변경
-        }
-    }
+    function openCam(id, type) { currentTarget = {id, type}; document.getElementById('cam-input').click(); }
+    function handleFile(i) { if(i.files[0]) { items.find(x=>x.id===currentTarget.id)[currentTarget.type] = i.files[0]; renderList(); } }
 
     async function finishAll() {
-        if(items.length === 0) return alert("전송할 시료가 없습니다.");
         const btn = document.getElementById('btn-finish');
-        const status = document.getElementById('status');
-        
         btn.disabled = true;
-        status.innerText = "⏳ 서버 전송 중... 잠시만 기다려주세요.";
-
         try {
-            // 1. 프로젝트(현장) 정보 Upsert
-            const { data: pData, error: pError } = await supabaseClient.from('projects').upsert([{
+            const { data: pData } = await supabaseClient.from('projects').upsert([{
                 company_id: document.getElementById('company_id').value,
                 site_name: document.getElementById('site_name').value,
                 inspector_name: document.getElementById('inspector_name').value,
@@ -226,45 +180,24 @@
                 work_type: mode
             }], { onConflict: 'site_name' }).select();
 
-            if(pError) throw pError;
-            const pId = pData[0].id;
-
-            // 2. 각 시료별 사진 업로드 및 데이터 기록
             for(let item of items) {
-                const targets = mode === '농도' ? ['photo'] : ['photo_before', 'photo_after'];
-                for(let t of targets) {
+                const ts = mode==='농도' ? ['photo'] : ['photo_before', 'photo_after'];
+                for(let t of ts) {
                     if(!item[t]) continue;
-                    
-                    const fileName = `${mode}/${document.getElementById('site_name').value}/${item.location}_${t}_${Date.now()}.jpg`;
-                    const { data: sData, error: sError } = await supabaseClient.storage.from('asbestos_photos').upload(fileName, item[t]);
-                    
-                    if(sError) throw sError;
-
+                    const path = `${mode}/${document.getElementById('site_name').value}/${item.location}_${t}_${Date.now()}.jpg`;
+                    const { data: sData } = await supabaseClient.storage.from('asbestos_photos').upload(path, item[t]);
                     await supabaseClient.from('project_photos').insert([{
-                        project_id: pId,
-                        photo_type: `${item.location}_${t}`,
-                        storage_path: sData.path,
-                        description: item.time // 측정 시간을 사진 설명 컬럼에 저장
+                        project_id: pData[0].id, photo_type: `${item.location}_${t}`, storage_path: sData.path, description: item.time
                     }]);
                 }
             }
-            alert("전송 완료! 모든 데이터가 안전하게 저장되었습니다.");
-            location.reload();
-        } catch (e) {
-            alert("전송 중 오류 발생: " + e.message);
-            btn.disabled = false;
-            status.innerText = "❌ 전송 실패 (다시 시도해주세요)";
-        }
+            alert("전송 완료!"); location.reload();
+        } catch (e) { alert("오류: "+e.message); btn.disabled = false; }
     }
 
     async function loadComps() {
-        const { data, error } = await supabaseClient.from('companies').select('*');
+        const { data } = await supabaseClient.from('companies').select('*');
         const sel = document.getElementById('company_id');
-        if(error) {
-            sel.innerHTML = `<option>데이터 로드 실패</option>`;
-            return;
-        }
-        sel.innerHTML = "";
         data.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
     }
     loadComps();
