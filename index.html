@@ -1,101 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>대한환경 현장관리 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 모든 모바일 브라우저 표준 스타일 */
+        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; line-height: 1.5; }
+        
+        .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 16px; }
+        h2 { font-size: 1.2rem; margin: 0 0 16px 0; color: #1c1c1e; text-align: center; }
+
+        /* 모드 선택 탭 */
+        .tab-container { display: flex; background: #e3e3e6; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 12px; border-radius: 9px; text-align: center; font-weight: bold; font-size: 15px; transition: 0.2s; cursor: pointer; color: #8e8e93; }
+        .tab.active { background: #fff; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* 입력 폼 */
+        label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
+        input, select { 
+            width: 100%; height: 50px; background: #f9f9f9; border: 1px solid #ddd; 
+            border-radius: 10px; padding: 0 15px; font-size: 16px; margin-bottom: 15px; outline: none;
+        }
+        input:focus { border-color: var(--primary); background: #fff; }
+
+        /* 사진 촬영 영역 */
+        .photo-section { border: 2px dashed #ccc; border-radius: 12px; padding: 20px; text-align: center; background: #fafafa; cursor: pointer; transition: 0.3s; }
+        .photo-section.has-file { border-color: var(--success); background: #f0fff4; }
+        .photo-section i { font-size: 32px; display: block; margin-bottom: 8px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* 하단 전송 버튼 */
+        .btn-submit { 
+            width: 100%; height: 60px; background: var(--primary); color: #fff; border: none; 
+            border-radius: 14px; font-size: 18px; font-weight: bold; margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+        .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
+        
+        #status-msg { text-align: center; font-size: 14px; margin-top: 12px; color: #007AFF; font-weight: 500; }
+    </style>
+</head>
+<body>
+
 <div class="card">
-    <div class="mode-switch">
-        <div id="btn-nong" class="mode-btn active" onclick="setMode('농도')">석면 농도</div>
-        <div id="btn-bi" class="mode-btn" onclick="setMode('비산')">비산 누출</div>
+    <div class="tab-container">
+        <div id="tab-nong" class="tab active" onclick="switchMode('농도')">석면 농도</div>
+        <div id="tab-bi" class="tab" onclick="switchMode('비산')">비산 누출</div>
     </div>
-    <label>🏢 소속 업체</label>
-    <select id="company_id"></select>
-    <label>📍 현장명 (가명 입력 가능)</label>
-    <input type="text" id="site_name" placeholder="예: 임시_A동, OO빌라">
-    <label>👷 측정자</label>
+
+    <label>🏢 업체명</label>
+    <select id="company_id"><option value="">목록 불러오는 중...</option></select>
+
+    <label>📍 현장명 (가명 가능)</label>
+    <input type="text" id="site_name" placeholder="현장명을 입력하세요">
+
+    <label>👷 측정자 성함</label>
     <input type="text" id="inspector_name" placeholder="성함 입력">
 </div>
 
-<div class="card">
-    <h2 id="mode-title">농도 포인트 측정</h2>
+<div id="section-nong" class="card">
+    <h2>📍 농도 포인트 측정</h2>
+    <label>포인트 번호 (예: P1, P2)</label>
+    <input type="text" id="p_number" placeholder="번호 입력">
     
-    <div id="nong-point-area">
-        <label>측정 포인트 (번호)</label>
-        <input type="text" id="p_number" placeholder="예: P1, P2 (숫자만 입력도 가능)">
-        <div class="p-btn" onclick="takePhoto('농도_단일')" style="margin-top:15px; height:100px;">
-            <span id="txt-nong">📷 포인트 사진 촬영</span>
-        </div>
+    <div class="photo-section" onclick="openCam('SINGLE')">
+        <div id="preview-nong">📷 사진 촬영하기</div>
     </div>
+</div>
 
-    <div id="bi-point-area" style="display:none;">
-        <label>비산 지점 선택</label>
-        <select id="bi_point_name">
-            <option value="부지경계">부지경계</option>
-            <option value="위생설비">위생설비</option>
-            <option value="음압기배출구">음압기 배출구</option>
-            <option value="폐기물보관소">폐기물 보관소</option>
-        </select>
-        <div class="photo-grid">
-            <div class="p-btn" id="btn-before" onclick="takePhoto('전')">📸 시작 전</div>
-            <div class="p-btn" id="btn-after" onclick="takePhoto('후')">📸 작업 후</div>
+<div id="section-bi" class="card" style="display:none;">
+    <h2>📍 비산 지점 전/후 측정</h2>
+    <label>지점명 선택</label>
+    <select id="bi_point_name">
+        <option value="부지경계">부지경계</option>
+        <option value="위생설비">위생설비</option>
+        <option value="음압기배출구">음압기 배출구</option>
+        <option value="폐기물보관소">폐기물 보관소</option>
+        <option value="기타">기타</option>
+    </select>
+    
+    <div class="grid-2">
+        <div class="photo-section" id="box-before" onclick="openCam('전')">
+            <div id="txt-before">📷 시작 전</div>
+        </div>
+        <div class="photo-section" id="box-after" onclick="openCam('후')">
+            <div id="txt-after">📷 종료 후</div>
         </div>
     </div>
 </div>
 
-<button class="submit-btn" onclick="uploadCurrentPoint()">이 포인트 전송</button>
-<div id="status">전송 대기 중...</div>
+<button class="btn-submit" onclick="handleUpload()">서버로 전송하기</button>
+<div id="status-msg">시스템 준비 완료</div>
+
+<input type="file" id="camera-input" accept="image/*" capture="camera" style="display:none;" onchange="fileSelected(this)">
 
 <script>
-    // ... Supabase 설정 ...
-    let currentMode = '농도';
-    let currentPhotoType = '';
-    let tempFiles = {};
+    const S_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
+    const S_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
+    const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
-    function setMode(m) {
-        currentMode = m;
-        document.getElementById('btn-nong').className = m === '농도' ? 'mode-btn active' : 'mode-btn';
-        document.getElementById('btn-bi').className = m === '비산' ? 'mode-btn active' : 'mode-btn';
-        document.getElementById('nong-point-area').style.display = m === '농도' ? 'block' : 'none';
-        document.getElementById('bi-point-area').style.display = m === '비산' ? 'block' : 'none';
-        document.getElementById('mode-title').innerText = m === '농도' ? '농도 포인트 측정' : '비산 포인트 측정';
+    let mode = '농도';
+    let targetSlot = '';
+    let filesData = {};
+
+    function switchMode(m) {
+        mode = m;
+        document.getElementById('tab-nong').classList.toggle('active', m === '농도');
+        document.getElementById('tab-bi').classList.toggle('active', m === '비산');
+        document.getElementById('section-nong').style.display = m === '농도' ? 'block' : 'none';
+        document.getElementById('section-bi').style.display = m === '비산' ? 'block' : 'none';
+        filesData = {}; // 모드 변경 시 촬영 데이터 초기화
     }
 
-    // 사진 촬영 및 임시 저장 (기존과 동일하되 피드백 강화)
-    function handleFile(input) {
-        if(input.files[0]) {
-            tempFiles[currentPhotoType] = input.files[0];
-            alert(currentPhotoType + " 사진이 준비되었습니다.");
+    function openCam(slot) {
+        targetSlot = slot;
+        document.getElementById('camera-input').click();
+    }
+
+    function fileSelected(input) {
+        if (input.files[0]) {
+            filesData[targetSlot] = input.files[0];
+            const displayId = targetSlot === 'SINGLE' ? 'preview-nong' : 'txt-' + (targetSlot === '전' ? 'before' : 'after');
+            const parentId = targetSlot === 'SINGLE' ? null : 'box-' + (targetSlot === '전' ? 'before' : 'after');
+            
+            document.getElementById(displayId).innerText = "✅ 촬영 완료";
+            if(parentId) document.getElementById(parentId).classList.add('has-file');
         }
     }
 
-    async function uploadCurrentPoint() {
+    async function handleUpload() {
         const site = document.getElementById('site_name').value;
-        const comp = document.getElementById('company_id').value;
-        if(!site) return alert("현장명을 입력하세요.");
+        if (!site) return alert("현장명을 입력해 주세요.");
+        if (Object.keys(filesData).length === 0) return alert("사진을 촬영해 주세요.");
 
-        const status = document.getElementById('status');
-        status.innerText = "⏳ 데이터 전송 중...";
+        document.getElementById('status-msg').innerText = "⏳ 서버 전송 중...";
 
-        // 1. 프로젝트 생성/확인
-        const { data: pData } = await supabaseClient.from('projects').upsert([{
-            company_id: comp, site_name: site, 
-            inspector_name: document.getElementById('inspector_name').value,
-            work_type: currentMode
-        }], { onConflict: 'site_name' }).select();
-        
-        const pId = pData[0].id;
+        try {
+            // 1. 현장 정보 업데이트 (Upsert)
+            const { data: pData } = await supabaseClient.from('projects').upsert([{
+                company_id: document.getElementById('company_id').value,
+                site_name: site,
+                inspector_name: document.getElementById('inspector_name').value,
+                work_type: mode
+            }], { onConflict: 'site_name' }).select();
 
-        // 2. 사진 업로드 및 DB 기록
-        for (let key in tempFiles) {
-            let pointLabel = currentMode === '농도' ? document.getElementById('p_number').value : document.getElementById('bi_point_name').value;
-            let finalPhotoType = currentMode === '농도' ? `${pointLabel}` : `${pointLabel}_${key}`;
+            const projectId = pData[0].id;
 
-            const fName = `${currentMode}/${site}/${finalPhotoType}_${Date.now()}.jpg`;
-            const { data: sData } = await supabaseClient.storage.from('asbestos_photos').upload(fName, tempFiles[key]);
+            // 2. 포인트 사진별 전송
+            for (let key in filesData) {
+                let pointName = mode === '농도' ? document.getElementById('p_number').value : document.getElementById('bi_point_name').value;
+                let photoTag = mode === '농도' ? pointName : pointName + "_" + key;
 
-            await supabaseClient.from('project_photos').insert([{
-                project_id: pId, photo_type: finalPhotoType, storage_path: sData.path
-            }]);
+                const path = `${mode}/${site}/${photoTag}_${Date.now()}.jpg`;
+                const { data: stData } = await supabaseClient.storage.from('asbestos_photos').upload(path, filesData[key]);
+
+                await supabaseClient.from('project_photos').insert([{
+                    project_id: projectId,
+                    photo_type: photoTag,
+                    storage_path: stData.path
+                }]);
+            }
+
+            alert("성공적으로 전송되었습니다!");
+            // 포인트 번호만 초기화하여 다음 포인트 바로 입력 가능하게 함
+            if(mode === '농도') document.getElementById('p_number').value = "";
+            filesData = {};
+            document.getElementById('status-msg').innerText = "✅ 전송 완료! 다음 데이터를 입력하세요.";
+        } catch (e) {
+            alert("전송 오류: " + e.message);
+            document.getElementById('status-msg').innerText = "❌ 전송 실패";
         }
-
-        status.innerText = "✅ 전송 완료! 다음 포인트를 입력하세요.";
-        // 입력 초기화 (현장명은 유지)
-        tempFiles = {};
-        if(currentMode === '농도') document.getElementById('p_number').value = "";
     }
+
+    async function loadComps() {
+        const { data } = await supabaseClient.from('companies').select('*');
+        const sel = document.getElementById('company_id');
+        sel.innerHTML = '';
+        data.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+    }
+    loadComps();
 </script>
+
+</body>
+</html>
