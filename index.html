@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>대한환경 현장관리 v6</title>
+    <title>대한환경 현장관리 v7</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #007AFF; --success: #34C759; --bg: #F2F2F7; }
+        :root { --primary: #007AFF; --success: #34C759; --danger: #FF3B30; --bg: #F2F2F7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-size: 14px; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 80px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; }
         
         .page { display: none; }
         .page.active { display: block; }
@@ -16,34 +16,32 @@
         .card { background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; }
         h2 { font-size: 15px; margin: 0 0 10px 0; color: #1c1c1e; border-left: 4px solid var(--primary); padding-left: 8px; }
 
-        label { display: block; font-size: 11px; font-weight: 600; color: #8e8e93; margin-bottom: 2px; }
-        input, select { 
-            width: 100%; height: 40px; background: #F2F2F7; border: 1px solid #DDD; 
-            border-radius: 6px; padding: 0 8px; outline: none;
-        }
+        input, select { width: 100%; height: 40px; background: #F2F2F7; border: 1px solid #DDD; border-radius: 6px; padding: 0 8px; outline: none; }
+        .date-input { width: 150px; font-weight: bold; margin-bottom: 10px; }
 
-        /* 날짜 입력창 크기 최적화 */
-        .date-input { width: 160px; font-size: 16px; font-weight: bold; height: 45px; margin-bottom: 15px; }
+        /* 입력 영역 그리드 - 시간 칸 축소 */
+        .input-grid { display: grid; grid-template-columns: 1fr 80px 70px; gap: 5px; align-items: end; }
+        .input-grid-bi { display: grid; grid-template-columns: 1fr 80px 45px 45px; gap: 4px; align-items: end; }
 
-        /* 시료 리스트 그리드 (가로 한줄) */
-        .input-row { display: grid; grid-template-columns: 1fr 1.2fr 60px; gap: 5px; margin-bottom: 8px; align-items: center; }
-        .input-row-bi { display: grid; grid-template-columns: 1fr 1fr 45px 45px; gap: 4px; margin-bottom: 8px; align-items: center; }
-
-        .tm-box { position: relative; }
-        .tm-label { position: absolute; left: 5px; top: -8px; font-size: 9px; color: var(--primary); background: #fff; padding: 0 2px; }
-
-        .cam-btn { 
-            height: 40px; background: #E8F2FF; color: var(--primary); border: 1px solid var(--primary); 
-            border-radius: 6px; font-weight: bold; font-size: 11px;
-        }
+        .cam-btn { height: 40px; background: #E8F2FF; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; font-weight: bold; font-size: 11px; }
         .cam-btn.done { background: var(--success) !important; border-color: #28a745 !important; color: white !important; }
+
+        /* 등록된 시료 스타일 */
+        .date-group { margin-top: 15px; }
+        .date-header { font-weight: bold; color: #555; margin: 10px 0 5px 5px; display: block; }
+        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px; border-bottom: 1px solid #eee; }
+        .item-row:last-child { border: none; }
+        .item-info { flex: 1; }
+        .item-info b { font-size: 14px; }
+        .item-info span { font-size: 11px; color: #888; margin-left: 5px; }
+        
+        .btn-del { color: var(--danger); border: none; background: none; font-weight: bold; padding: 5px; margin-left: 10px; }
+        .btn-reg { background: #555; color: white; border: none; width: 100%; height: 45px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
+        .btn-submit { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 55px; background: var(--success); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; z-index: 100; }
 
         .tab-container { display: flex; background: #E5E5EA; border-radius: 8px; padding: 2px; margin-bottom: 10px; }
         .tab { flex: 1; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: #8E8E93; }
         .tab.active { background: white; color: var(--primary); }
-
-        .btn-add { background: #555; color: white; border: none; width: 100%; height: 40px; border-radius: 8px; margin-top: 5px; }
-        .btn-submit { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 55px; background: var(--success); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -51,13 +49,9 @@
 <div id="page1" class="page active">
     <div class="card">
         <h2>🏗️ 현장 정보</h2>
-        <label>🏢 소속 업체</label>
-        <select id="company_id" onchange="saveDraft()"></select>
-        <label>📍 공사명</label>
-        <input type="text" id="site_name" placeholder="현장명" oninput="saveDraft()">
-        <label>👷 측정자</label>
-        <input type="text" id="inspector_name" placeholder="성함" oninput="saveDraft()">
-        <button class="btn-add" style="background:var(--primary); margin-top:15px;" onclick="goPage(2)">다음 단계 〉</button>
+        <input type="text" id="site_name" placeholder="현장명" style="margin-bottom:10px;">
+        <input type="text" id="inspector_name" placeholder="측정자 성함">
+        <button class="btn-reg" style="background:var(--primary);" onclick="goPage(2)">다음 단계 〉</button>
     </div>
 </div>
 
@@ -68,24 +62,27 @@
     </div>
 
     <div class="card">
-        <label>📅 측정 날짜</label>
-        <input type="date" id="measure_date" class="date-input" onchange="saveDraft()">
-
-        <div id="nong-section">
-            <h2 style="margin-top:10px;">시료 목록</h2>
-            <div id="nong-list"></div>
-            <button class="btn-add" onclick="addRow('농도')">+ 농도 시료 추가</button>
+        <input type="date" id="measure_date" class="date-input">
+        
+        <div id="input-area-nong" class="input-grid">
+            <div><label>위치</label><input type="text" id="loc_n"></div>
+            <div><label>시간</label><input type="time" id="time_n"></div>
+            <button class="cam-btn" id="btn-cam-n" onclick="openCam('single')">📷 촬영</button>
         </div>
 
-        <div id="bi-section" style="display:none;">
-            <h2 style="margin-top:10px;">지점 목록</h2>
-            <div id="bi-list"></div>
-            <button class="btn-add" onclick="addRow('비산')">+ 비산 지점 추가</button>
+        <div id="input-area-bi" class="input-grid-bi" style="display:none;">
+            <div><label>위치</label><input type="text" id="loc_b"></div>
+            <div><label>시간</label><input type="time" id="time_b"></div>
+            <button class="cam-btn" id="btn-cam-b1" onclick="openCam('pre')">전</button>
+            <button class="cam-btn" id="btn-cam-b2" onclick="openCam('post')">후</button>
         </div>
+
+        <button class="btn-reg" onclick="registerItem()">시료 등록</button>
     </div>
 
-    <button class="btn-submit" id="btn-final" onclick="submitData()">최종 전송 (완료)</button>
-    <button onclick="goPage(1)" style="width:100%; background:none; border:none; color:#888; margin-top:15px;">〈 현장정보 수정</button>
+    <div id="history-container"></div>
+
+    <button class="btn-submit" onclick="submitToSupabase()">최종 전송 (서버 업로드)</button>
 </div>
 
 <input type="file" id="cam-input" accept="image/*" capture="camera" style="display:none;" onchange="handleFile(this)">
@@ -96,162 +93,168 @@
     const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
     let mode = '농도';
-    let curTarget = null;
-    let fileCache = {};
+    let items = []; // 등록된 모든 시료 데이터
+    let tempPhotos = {}; // 현재 촬영 중인 사진 임시 보관
+    let curCamType = '';
 
-    // [핵심] 로컬 데이터 복구 및 저장
-    function saveDraft() {
-        const data = {
-            site: document.getElementById('site_name').value,
-            inspector: document.getElementById('inspector_name').value,
-            comp: document.getElementById('company_id').value,
-            date: document.getElementById('measure_date').value,
-            mode: mode
-        };
-        localStorage.setItem('asbestos_draft', JSON.stringify(data));
-    }
-
-    function loadDraft() {
-        const draft = JSON.parse(localStorage.getItem('asbestos_draft'));
-        if(draft) {
-            document.getElementById('site_name').value = draft.site || "";
-            document.getElementById('inspector_name').value = draft.inspector || "";
-            document.getElementById('company_id').value = draft.comp || "";
-            document.getElementById('measure_date').value = draft.date || new Date().toISOString().substring(0, 10);
-            if(draft.mode) switchMode(draft.mode);
-        } else {
-            document.getElementById('measure_date').value = new Date().toISOString().substring(0, 10);
-        }
-    }
+    document.getElementById('measure_date').value = new Date().toISOString().substring(0, 10);
 
     function goPage(n) {
-        if(n===2 && !document.getElementById('site_name').value) return alert("현장명을 입력하세요.");
+        if(!document.getElementById('site_name').value) return alert("현장명을 입력해주세요.");
         document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
         document.getElementById('page'+n).classList.add('active');
-        if(n===2 && mode==='농도' && document.getElementById('nong-list').children.length === 0) addRow('농도');
-        if(n===2 && mode==='비산' && document.getElementById('bi-list').children.length === 0) addRow('비산');
     }
 
     function switchMode(m) {
         mode = m;
         document.getElementById('tab-nong').classList.toggle('active', m==='농도');
         document.getElementById('tab-bi').classList.toggle('active', m==='비산');
-        document.getElementById('nong-section').style.display = m==='농도'?'block':'none';
-        document.getElementById('bi-section').style.display = m==='비산'?'block':'none';
-        saveDraft();
+        document.getElementById('input-area-nong').style.display = m==='농도'?'grid':'none';
+        document.getElementById('input-area-bi').style.display = m==='비산'?'grid':'none';
     }
 
-    // 시료 추가 로직
-    function addRow(type) {
-        const id = Date.now();
-        const container = type === '농도' ? document.getElementById('nong-list') : document.getElementById('bi-list');
-        const div = document.createElement('div');
-        
-        if(type === '농도') {
-            div.className = 'input-row';
-            div.id = 'row-' + id;
-            div.innerHTML = `
-                <input type="text" class="loc" placeholder="위치">
-                <div class="tm-box"><span class="tm-label">시간</span><input type="time" class="tm"></div>
-                <button class="cam-btn" onclick="openCam('${id}', 'photo')">📷 촬영</button>
-            `;
-        } else {
-            div.className = 'input-row-bi';
-            div.id = 'row-' + id;
-            // 비산은 이전 행의 위치명을 참고하여 자동 생성 (부지경계1 -> 부지경계2)
-            let prevLoc = "";
-            const lastRow = container.lastElementChild;
-            if(lastRow) prevLoc = lastRow.querySelector('.loc').value;
-            
-            let newLoc = prevLoc ? autoIncrement(prevLoc) : "부지경계1";
-            if(newLoc === "부지경계1") newLoc = "부지경계1"; // 초기값
+    // 사진 촬영
+    function openCam(type) {
+        curCamType = type;
+        document.getElementById('cam-input').click();
+    }
 
-            div.innerHTML = `
-                <input type="text" class="loc" value="${newLoc}" oninput="syncTimeByLoc(this)">
-                <div class="tm-box"><span class="tm-label">시간</span><input type="time" class="tm" oninput="syncTimeByLoc(this)"></div>
-                <button class="cam-btn" id="btn-${id}-pre" onclick="openCam('${id}', 'pre')">전</button>
-                <button class="cam-btn" id="btn-${id}-post" onclick="openCam('${id}', 'post')">후</button>
-            `;
+    function handleFile(i) {
+        if(i.files[0]) {
+            tempPhotos[curCamType] = i.files[0];
+            const btnId = curCamType === 'single' ? 'btn-cam-n' : (curCamType === 'pre' ? 'btn-cam-b1' : 'btn-cam-b2');
+            document.getElementById(btnId).classList.add('done');
+            document.getElementById(btnId).innerText = "✅";
         }
-        container.appendChild(div);
+    }
+
+    // 시료 등록 (리스트로 추가)
+    function registerItem() {
+        const date = document.getElementById('measure_date').value;
+        const loc = mode === '농도' ? document.getElementById('loc_n').value : document.getElementById('loc_b').value;
+        const time = mode === '농도' ? document.getElementById('time_n').value : document.getElementById('time_b').value;
+
+        if(!loc) return alert("위치를 입력하세요.");
+
+        const newItem = {
+            id: Date.now(),
+            date: date,
+            mode: mode,
+            loc: loc,
+            time: time,
+            photos: {...tempPhotos}
+        };
+
+        items.push(newItem);
+        renderHistory();
+        
+        // 입력창 초기화
+        if(mode==='농도') {
+            document.getElementById('loc_n').value = autoIncrement(loc);
+            document.getElementById('btn-cam-n').classList.remove('done');
+            document.getElementById('btn-cam-n').innerText = "📷 촬영";
+        } else {
+            document.getElementById('loc_b').value = autoIncrement(loc);
+            ['btn-cam-b1', 'btn-cam-b2'].forEach(id => {
+                document.getElementById(id).classList.remove('done');
+                document.getElementById(id).innerText = (id==='btn-cam-b1'?'전':'후');
+            });
+        }
+        tempPhotos = {};
     }
 
     function autoIncrement(text) {
-        return text.replace(/(\d+)$/, (match) => parseInt(match) + 1);
+        return text.replace(/(\d+)$/, (m) => parseInt(m) + 1);
     }
 
-    // [핵심] 같은 위치 이름이면 시간 동기화
-    function syncTimeByLoc(input) {
-        const currentRow = input.closest('.input-row-bi') || input.closest('.input-row');
-        const locName = currentRow.querySelector('.loc').value;
-        const timeVal = currentRow.querySelector('.tm').value;
+    // 날짜별 리스트 렌더링
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
 
-        document.querySelectorAll('.loc').forEach(el => {
-            if(el.value === locName && el !== currentRow.querySelector('.loc')) {
-                const targetRow = el.closest('.input-row-bi') || el.closest('.input-row');
-                if(timeVal) targetRow.querySelector('.tm').value = timeVal;
-            }
+        // 날짜순 정렬
+        const sortedDates = [...new Set(items.map(i => i.date))].sort().reverse();
+
+        sortedDates.forEach(date => {
+            const dateGroup = document.createElement('div');
+            dateGroup.className = 'date-group';
+            dateGroup.innerHTML = `<span class="date-header">${date}</span>`;
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.padding = "0";
+
+            items.filter(i => i.date === date).forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                const hasPhoto = Object.keys(item.photos).length > 0 ? "✅사진" : "❌무제";
+                row.innerHTML = `
+                    <div class="item-info" onclick="editItem(${item.id})">
+                        <b>${item.loc}</b> <span>${item.time}</span> <small style="color:var(--primary)">(${hasPhoto})</small>
+                    </div>
+                    <button class="btn-del" onclick="deleteItem(${item.id})">삭제</button>
+                `;
+                card.appendChild(row);
+            });
+            dateGroup.appendChild(card);
+            container.appendChild(dateGroup);
         });
     }
 
-    function openCam(id, type) { curTarget = {id, type}; document.getElementById('cam-input').click(); }
-    function handleFile(i) {
-        if(i.files[0]) {
-            fileCache[curTarget.id + curTarget.type] = i.files[0];
-            const selector = curTarget.type === 'photo' ? `#row-${curTarget.id} .cam-btn` : `#btn-${curTarget.id}-${curTarget.type}`;
-            const btn = document.querySelector(selector);
-            btn.classList.add('done');
-            btn.innerText = curTarget.type==='photo'?'✅':(curTarget.type==='pre'?'✅전':'✅후');
+    function deleteItem(id) {
+        if(confirm("이 시료를 삭제할까요?")) {
+            items = items.filter(i => i.id !== id);
+            renderHistory();
         }
     }
 
-    async function submitData() {
-        const btn = document.getElementById('btn-final');
-        if(!confirm("서버로 전송하시겠습니까?")) return;
-        btn.disabled = true;
-        btn.innerText = "⏳ 전송 중...";
+    function editItem(id) {
+        const item = items.find(i => i.id === id);
+        if(!item) return;
+        document.getElementById('measure_date').value = item.date;
+        switchMode(item.mode);
+        if(item.mode === '농도') {
+            document.getElementById('loc_n').value = item.loc;
+            document.getElementById('time_n').value = item.time;
+        } else {
+            document.getElementById('loc_b').value = item.loc;
+            document.getElementById('time_b').value = item.time;
+        }
+        // 수정 시 기존 항목 삭제 후 다시 등록하는 방식
+        items = items.filter(i => i.id !== id);
+        renderHistory();
+        window.scrollTo(0,0);
+    }
+
+    async function submitToSupabase() {
+        if(items.length === 0) return alert("전송할 데이터가 없습니다.");
+        if(!confirm("모든 데이터를 서버로 전송하시겠습니까?")) return;
+
+        const site = document.getElementById('site_name').value;
+        const inspector = document.getElementById('inspector_name').value;
 
         try {
+            // 프로젝트 생성
             const { data: pData } = await supabaseClient.from('projects').upsert([{
-                company_id: document.getElementById('company_id').value,
-                site_name: document.getElementById('site_name').value,
-                inspector_name: document.getElementById('inspector_name').value,
-                measure_date: document.getElementById('measure_date').value,
-                work_type: mode
+                site_name: site, inspector_name: inspector
             }], { onConflict: 'site_name' }).select();
 
-            const selector = mode === '농도' ? '#nong-list .input-row' : '#bi-list .input-row-bi';
-            const rows = document.querySelectorAll(selector);
-            
-            for(let row of rows) {
-                const loc = row.querySelector('.loc').value;
-                const tm = row.querySelector('.tm').value;
-                const id = row.id.split('-')[1];
-                const types = mode === '농도' ? ['photo'] : ['pre', 'post'];
-
-                for(let t of types) {
-                    const file = fileCache[id + t];
-                    if(!file) continue;
-                    const path = `${mode}/${document.getElementById('site_name').value}/${loc}_${t}_${Date.now()}.jpg`;
-                    await supabaseClient.storage.from('asbestos_photos').upload(path, file);
+            for(let item of items) {
+                for(let key in item.photos) {
+                    const path = `${item.mode}/${site}/${item.date}_${item.loc}_${key}.jpg`;
+                    await supabaseClient.storage.from('asbestos_photos').upload(path, item.photos[key]);
                     await supabaseClient.from('project_photos').insert([{
-                        project_id: pData[0].id, photo_type: `${loc}_${t}`, storage_path: path, description: tm
+                        project_id: pData[0].id,
+                        photo_type: `${item.loc}_${key}`,
+                        storage_path: path,
+                        description: `${item.date} ${item.time}`
                     }]);
                 }
             }
-            alert("전송 완료!");
-            localStorage.removeItem('asbestos_draft');
-            location.reload();
-        } catch(e) { alert(e.message); btn.disabled = false; btn.innerText = "전송 실패 (재시도)"; }
+            alert("서버 전송 완료!");
+            items = []; renderHistory();
+        } catch (e) { alert("오류: " + e.message); }
     }
-
-    async function loadComps() {
-        const { data } = await supabaseClient.from('companies').select('*');
-        const sel = document.getElementById('company_id');
-        data.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
-        loadDraft();
-    }
-    loadComps();
 </script>
 </body>
 </html>
