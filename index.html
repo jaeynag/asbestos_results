@@ -5,26 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>석면 현장 입력</title>
   <style>
-    :root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--primary:#2563eb;--dark:#111827;}
+    :root{
+      --bg:#f6f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --line:#e5e7eb;
+      --primary:#2563eb; --dark:#111827; --ok:#16a34a; --bad:#dc2626; --warn:#f59e0b;
+    }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR","맑은 고딕",sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:720px;margin:0 auto;padding:20px 14px 40px}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:10px 0}
+    .wrap{max-width:760px;margin:0 auto;padding:18px 14px 40px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:999}
     .badge{font-size:12px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted)}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
     h1{margin:0 0 10px;font-size:24px}
+    h2{margin:0 0 8px;font-size:18px}
     p{margin:8px 0;color:var(--muted);line-height:1.4}
     label{display:block;margin:10px 0 6px;font-size:13px;color:var(--muted)}
-    input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+    input, textarea, select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+    textarea{min-height:84px;resize:vertical}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+    @media(max-width:560px){.grid2{grid-template-columns:1fr}}
     button{border:0;border-radius:14px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--primary);color:#fff;touch-action:manipulation}
     button.dark{background:var(--dark)}
     button.ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    button.ok{background:var(--ok)}
+    button.danger{background:var(--bad)}
     button:disabled{opacity:.45;cursor:not-allowed}
     .toast{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px;word-break:break-word}
-    .danger{color:#dc2626}
+    .toast.danger{color:var(--bad)}
     .list{margin-top:10px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
     .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;background:#fff;border-top:1px solid var(--line)}
     .item:first-child{border-top:0}
@@ -35,7 +42,12 @@
     .typebtn{padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--text);text-align:left}
     .typebtn b{display:block;font-size:16px;margin-bottom:4px}
     .typebtn small{color:var(--muted)}
-    .footer{margin-top:14px}
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .pill{display:inline-block;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted)}
+    .pill.warn{border-color:rgba(245,158,11,.35);color:var(--warn)}
+    .pill.ok{border-color:rgba(22,163,74,.35);color:var(--ok)}
+    .pill.bad{border-color:rgba(220,38,38,.35);color:var(--bad)}
+    .right{margin-left:auto}
   </style>
 </head>
 <body>
@@ -48,10 +60,9 @@
       </div>
     </div>
 
-    <!-- LOGIN -->
     <section id="viewLogin" class="card" style="display:none">
       <h1>로그인</h1>
-      <p>회원가입/로그인 후, 접근 가능한 회사만 뜨게 해둠.</p>
+      <p>회원가입/로그인 후, 접근 가능한 회사만 뜸.</p>
 
       <label>이메일</label>
       <input id="email" type="email" autocomplete="email" placeholder="email@example.com" />
@@ -68,7 +79,6 @@
       <p class="hint">이메일 인증을 켜두면 회원가입 후 확인메일 인증 필요할 수 있음.</p>
     </section>
 
-    <!-- PENDING -->
     <section id="viewPending" class="card" style="display:none">
       <h1>승인 대기</h1>
       <p>접근 가능한 회사가 없음. 아래 UID를 관리자에게 보내서 권한 받아.</p>
@@ -81,52 +91,175 @@
         <button class="ghost" id="btnCopyUid">복사</button>
       </div>
 
-      <div class="footer">
-        <button id="btnRefreshAccess" style="width:100%;padding:16px;border-radius:16px">권한 다시 확인</button>
-      </div>
+      <div class="divider"></div>
+      <button id="btnRefreshAccess" style="width:100%;padding:16px;border-radius:16px">권한 다시 확인</button>
 
       <div class="toast" id="pendingMsg" style="display:none"></div>
     </section>
 
-    <!-- COMPANY -->
     <section id="viewCompany" class="card" style="display:none">
       <h1>회사 선택</h1>
       <p>접속할 회사를 선택해.</p>
 
       <div class="list" id="companyList"></div>
 
-      <div class="footer">
-        <button id="btnStart" style="width:100%;padding:16px;border-radius:16px" disabled>현장 업무 시작</button>
-      </div>
+      <div class="divider"></div>
+      <button id="btnStart" style="width:100%;padding:16px;border-radius:16px" disabled>현장 업무 시작</button>
 
       <div class="toast" id="companyMsg" style="display:none"></div>
     </section>
 
-    <!-- TYPE -->
     <section id="viewType" class="card" style="display:none">
       <h1>현장 업무</h1>
       <p class="hint">회사: <span id="pickedCompany">-</span> · UID: <span id="pickedUid" class="mono">-</span></p>
 
+      <h2>보고서 종류</h2>
       <div class="types">
         <button class="typebtn" id="typeC">
-          <b>농도</b><small>측정위치/시작시간/사진(1장)</small>
+          <b>농도</b><small>측정위치/시작시간/사진(추후)</small>
         </button>
         <button class="typebtn" id="typeS">
-          <b>비산</b><small>장비/측정위치/시작시간/전·후사진(선택)</small>
+          <b>비산</b><small>장비/측정위치/시작시간/전·후사진(추후)</small>
         </button>
       </div>
 
-      <div class="toast" id="typeMsg" style="display:none"></div>
+      <div class="divider"></div>
+      <button class="ghost" id="btnBackCompany" style="width:100%;padding:16px;border-radius:16px">회사 다시 선택</button>
 
-      <div class="footer">
-        <button class="ghost" id="btnBackCompany" style="width:100%;padding:16px;border-radius:16px">회사 다시 선택</button>
+      <div class="toast" id="typeMsg" style="display:none"></div>
+    </section>
+
+    <section id="viewProjects" class="card" style="display:none">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h1 style="margin:0 0 6px">현장 목록</h1>
+          <div class="hint">회사: <span id="plCompany">-</span> · 타입: <span id="plType">-</span></div>
+        </div>
+        <button class="ghost" id="btnBackType">뒤로</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>새 현장</h2>
+      <label>현장(공사)명</label>
+      <input id="newSiteName" placeholder="예) OO아파트 석면해체" />
+
+      <div class="grid2">
+        <div>
+          <label>주소(선택)</label>
+          <input id="newAddress" placeholder="예) 서울 ..." />
+        </div>
+        <div>
+          <label>측정일(선택)</label>
+          <input id="newMeasureDate" type="date" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="ok" id="btnCreateProject" style="flex:1">현장 생성(임시저장)</button>
+        <button class="ghost" id="btnRefreshProjects">새로고침</button>
+      </div>
+
+      <div class="toast" id="projectsMsg" style="display:none"></div>
+
+      <div class="divider"></div>
+
+      <h2>내 현장</h2>
+      <div class="list" id="projectList"></div>
+    </section>
+
+    <section id="viewProject" class="card" style="display:none">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h1 style="margin:0 0 6px" id="pdTitle">현장</h1>
+          <div class="hint">
+            <span class="pill" id="pdStatus">-</span>
+            <span class="pill" id="pdType">-</span>
+            <span class="pill" id="pdDate">-</span>
+          </div>
+        </div>
+        <button class="ghost" id="btnBackProjects">목록</button>
+      </div>
+
+      <div class="toast" id="projectMsg" style="display:none"></div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <h2 style="margin:0">시료</h2>
+        <span class="right"></span>
+        <button class="ghost" id="btnTempSave">임시저장</button>
+        <button class="ok" id="btnSend">데이터 전송</button>
+      </div>
+      <p class="hint">전송하면 status=uploaded. (전송 후 모바일 수정 막힘)</p>
+
+      <div class="divider"></div>
+
+      <h2>시료 추가</h2>
+
+      <div class="item" style="border:1px solid var(--line);border-radius:14px">
+        <div>
+          <div class="hint">새 시료번호</div>
+          <div><strong id="newSampleCode">P?</strong></div>
+        </div>
+        <div class="hint">자동부여</div>
+      </div>
+
+      <div id="equipNewWrap" style="display:none">
+        <label>장비(비산)</label>
+        <input id="newEquipment" placeholder="예) 펌프/샘플러..." />
+      </div>
+
+      <label>측정위치</label>
+      <input id="newPosition" placeholder="예) 거실 중앙" />
+
+      <label>측정시작시간</label>
+      <input id="newStartTime" type="time" />
+
+      <div class="row" style="margin-top:12px">
+        <button id="btnAddSample" style="flex:1">시료 추가</button>
+        <button class="ghost" id="btnRefreshSamples">목록 새로고침</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>시료 목록</h2>
+      <div class="list" id="sampleList"></div>
+
+      <div class="divider"></div>
+
+      <h2>시료 수정</h2>
+      <p class="hint">목록에서 시료를 누르면 아래에서 수정.</p>
+
+      <div class="item" style="border:1px solid var(--line);border-radius:14px">
+        <div>
+          <div class="hint">선택된 시료</div>
+          <div><strong id="editCode">없음</strong></div>
+        </div>
+        <button class="danger" id="btnDeleteSample" disabled>삭제</button>
+      </div>
+
+      <div id="equipEditWrap" style="display:none">
+        <label>장비(비산)</label>
+        <input id="editEquipment" placeholder="예) 펌프/샘플러..." />
+      </div>
+
+      <label>측정위치</label>
+      <input id="editPosition" />
+
+      <label>측정시작시간</label>
+      <input id="editStartTime" type="time" />
+
+      <div class="grid2" style="margin-top:12px">
+        <button id="btnSaveSample" disabled>수정 저장</button>
+        <button class="ghost" id="btnCancelEdit" disabled>선택 해제</button>
       </div>
     </section>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // 너 프로젝트 값
     const SUPABASE_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
 
@@ -135,15 +268,29 @@
     });
 
     const $ = (id)=>document.getElementById(id);
-    const views = ["viewLogin","viewPending","viewCompany","viewType"];
-    const LS_COMP = "ars_selected_company";
+    const VIEWS = ["viewLogin","viewPending","viewCompany","viewType","viewProjects","viewProject"];
 
-    let user=null;
-    let selectedCompany=null;
+    const LS_COMP = "ars_selected_company";
+    const LS_TYPE = "ars_selected_type";
+
+    let user = null;
+    let selectedCompany = null;
+    let selectedType = null;    // 'C' or 'S'
+    let currentProject = null;
+    let samples = [];
+    let editingSample = null;
 
     function show(viewId){
-      views.forEach(v => $(v).style.display = (v===viewId ? "block" : "none"));
+      VIEWS.forEach(v => $(v).style.display = (v===viewId ? "block" : "none"));
       window.scrollTo({top:0,behavior:"auto"});
+    }
+    function setSessionUI(){
+      $("sessionBadge").textContent = user ? "로그인됨" : "로그인 필요";
+      $("logoutBtn").style.display = user ? "inline-block" : "none";
+    }
+    function esc(s){
+      return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
     function toast(id, msg, isErr=false){
       const el = $(id);
@@ -156,14 +303,6 @@
       el.style.display = "none";
       el.textContent = "";
       el.classList.remove("danger");
-    }
-    function setSessionUI(){
-      $("sessionBadge").textContent = user ? "로그인됨" : "로그인 필요";
-      $("logoutBtn").style.display = user ? "inline-block" : "none";
-    }
-    function esc(s){
-      return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     async function getAccessibleCompanies(userId){
@@ -196,7 +335,7 @@
       try{ pickedId = JSON.parse(localStorage.getItem(LS_COMP) || "null")?.id || null; }catch{}
 
       if (!companies.length){
-        list.innerHTML = `<div class="item"><div><strong>접근 가능한 회사 없음</strong><div class="hint">관리자 승인 후 다시 확인해</div></div></div>`;
+        list.innerHTML = `<div class="item"><div><strong>접근 가능한 회사 없음</strong><div class="hint">관리자 승인 후 다시 확인</div></div></div>`;
         $("btnStart").disabled = true;
         return;
       }
@@ -231,6 +370,334 @@
       });
     }
 
+    function typeLabel(t){ return t==="C" ? "농도" : t==="S" ? "비산" : "-"; }
+    function setStatusPill(status){
+      const el = $("pdStatus");
+      el.className = "pill";
+      el.textContent = status || "-";
+      if (status === "draft") el.classList.add("warn");
+      if (status === "uploaded") el.classList.add("ok");
+      if (status === "locked") el.classList.add("bad");
+    }
+
+    function applyTypeUI(){
+      const isS = selectedType === "S";
+      $("equipNewWrap").style.display = isS ? "block" : "none";
+      $("equipEditWrap").style.display = isS ? "block" : "none";
+      if (!isS){
+        $("newEquipment").value = "";
+        $("editEquipment").value = "";
+      }
+    }
+
+    // Projects
+    async function fetchProjects(){
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, company_id, site_name, address, measure_date, status, project_type, created_at")
+        .eq("company_id", selectedCompany.id)
+        .eq("project_type", selectedType)
+        .eq("created_by", user.id)
+        .order("created_at", { ascending:false });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    function renderProjects(projects){
+      const list = $("projectList");
+      list.innerHTML = "";
+
+      if (!projects.length){
+        list.innerHTML = `<div class="item"><div><strong>현장 없음</strong><div class="hint">위에서 새 현장부터 만들어</div></div></div>`;
+        return;
+      }
+
+      const pillHtml = (st)=>{
+        if (st==="draft") return `<span class="pill warn">임시</span>`;
+        if (st==="uploaded") return `<span class="pill ok">전송됨</span>`;
+        if (st==="locked") return `<span class="pill bad">잠김</span>`;
+        return `<span class="pill">${esc(st)}</span>`;
+      };
+
+      projects.forEach(p=>{
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const left = document.createElement("div");
+        const date = p.measure_date ? esc(p.measure_date) : "-";
+        left.innerHTML = `<strong>${esc(p.site_name)}</strong>
+          <div class="hint">${pillHtml(p.status)} · ${date}${p.address ? " · " + esc(p.address) : ""}</div>`;
+
+        const btn = document.createElement("button");
+        btn.className = "ghost";
+        btn.textContent = "열기";
+        btn.onclick = async ()=>{ await openProject(p); };
+
+        item.appendChild(left);
+        item.appendChild(btn);
+        list.appendChild(item);
+      });
+    }
+
+    async function loadProjects(){
+      show("viewProjects");
+      $("plCompany").textContent = selectedCompany?.name || "-";
+      $("plType").textContent = typeLabel(selectedType);
+      clearToast("projectsMsg");
+
+      try{
+        const projects = await fetchProjects();
+        renderProjects(projects);
+      }catch(err){
+        toast("projectsMsg", "현장 목록 오류: " + (err?.message || err), true);
+      }
+    }
+
+    async function createProject(){
+      clearToast("projectsMsg");
+      const site_name = $("newSiteName").value.trim();
+      const address = $("newAddress").value.trim() || null;
+      const measure_date = $("newMeasureDate").value || null;
+
+      if (!site_name) return toast("projectsMsg", "현장명은 필수.", true);
+
+      const payload = {
+        company_id: selectedCompany.id,
+        site_name,
+        address,
+        measure_date,
+        project_type: selectedType,
+        status: "draft",
+        created_by: user.id
+      };
+
+      const { error } = await supabase.from("projects").insert(payload);
+      if (error) return toast("projectsMsg", "현장 생성 실패: " + (error.message || error), true);
+
+      $("newSiteName").value = "";
+      $("newAddress").value = "";
+      $("newMeasureDate").value = "";
+
+      toast("projectsMsg", "현장 생성됨(임시저장).", false);
+      await loadProjects();
+    }
+
+    // Samples
+    async function fetchSamples(projectId){
+      const { data, error } = await supabase
+        .from("project_samples")
+        .select("id, project_id, seq, position, start_time, equipment, created_at")
+        .eq("project_id", projectId)
+        .order("seq", { ascending:true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    function nextSeq(rows){
+      let m = 0;
+      for (const r of rows){ const v = Number(r.seq || 0); if (v > m) m = v; }
+      return m + 1;
+    }
+
+    function renderSamples(rows){
+      const list = $("sampleList");
+      list.innerHTML = "";
+
+      if (!rows.length){
+        list.innerHTML = `<div class="item"><div><strong>시료 없음</strong><div class="hint">위에서 시료 추가</div></div></div>`;
+        return;
+      }
+
+      rows.forEach(s=>{
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const left = document.createElement("div");
+        const code = "P" + s.seq;
+        const pos = s.position || "";
+        const tm = s.start_time || "";
+        const eq = (selectedType==="S" && s.equipment) ? (" · 장비:" + esc(s.equipment)) : "";
+        left.innerHTML = `<strong>${esc(code)} ${esc(pos)}</strong><div class="hint">시작:${esc(tm)}${eq}</div>`;
+
+        const btn = document.createElement("button");
+        btn.className = "ghost";
+        btn.textContent = "수정";
+        btn.disabled = (currentProject?.status !== "draft");
+        btn.onclick = ()=> startEdit(s);
+
+        item.appendChild(left);
+        item.appendChild(btn);
+        list.appendChild(item);
+      });
+    }
+
+    function setProjectHeader(p){
+      $("pdTitle").textContent = p.site_name || "현장";
+      $("pdType").textContent = typeLabel(p.project_type);
+      $("pdDate").textContent = p.measure_date || "-";
+      setStatusPill(p.status);
+
+      const locked = (p.status !== "draft");
+      $("btnSend").disabled = locked;
+      $("btnTempSave").disabled = locked;
+      $("btnAddSample").disabled = locked;
+      $("btnSaveSample").disabled = locked || !editingSample;
+      $("btnDeleteSample").disabled = locked || !editingSample;
+
+      $("newPosition").disabled = locked;
+      $("newStartTime").disabled = locked;
+      $("newEquipment").disabled = locked;
+
+      $("editPosition").disabled = locked;
+      $("editStartTime").disabled = locked;
+      $("editEquipment").disabled = locked;
+    }
+
+    async function openProject(p){
+      currentProject = p;
+      selectedType = p.project_type;
+      localStorage.setItem(LS_TYPE, selectedType);
+      applyTypeUI();
+      clearEdit();
+      clearToast("projectMsg");
+
+      show("viewProject");
+      setProjectHeader(p);
+
+      await reloadSamples();
+    }
+
+    async function reloadSamples(){
+      clearToast("projectMsg");
+      try{
+        samples = await fetchSamples(currentProject.id);
+        renderSamples(samples);
+        $("newSampleCode").textContent = "P" + nextSeq(samples);
+      }catch(err){
+        toast("projectMsg",
+          "시료 로딩 오류: " + (err?.message || err) +
+          " / (project_samples 컬럼이 다르면 여기서 터짐. 에러캡쳐 보내면 맞춰줄게)",
+          true
+        );
+      }
+    }
+
+    async function addSample(){
+      clearToast("projectMsg");
+      if (!currentProject) return;
+      if (currentProject.status !== "draft") return toast("projectMsg", "draft 상태에서만 추가 가능.", true);
+
+      const seq = nextSeq(samples);
+      const position = $("newPosition").value.trim() || null;
+      const start_time = $("newStartTime").value || null;
+      const equipment = (selectedType==="S") ? ($("newEquipment").value.trim() || null) : null;
+
+      const payload = { project_id: currentProject.id, seq, position, start_time, equipment };
+
+      const { error } = await supabase.from("project_samples").insert(payload);
+      if (error) return toast("projectMsg", "시료 추가 실패: " + (error.message || error), true);
+
+      $("newPosition").value = "";
+      $("newStartTime").value = "";
+      if (selectedType==="S") $("newEquipment").value = "";
+
+      await reloadSamples();
+      toast("projectMsg", "시료 추가됨: P" + seq, false);
+    }
+
+    function startEdit(s){
+      editingSample = s;
+      $("editCode").textContent = "P" + s.seq;
+      $("editPosition").value = s.position || "";
+      $("editStartTime").value = s.start_time || "";
+      $("editEquipment").value = s.equipment || "";
+
+      const locked = (currentProject?.status !== "draft");
+      $("btnSaveSample").disabled = locked;
+      $("btnDeleteSample").disabled = locked;
+      $("btnCancelEdit").disabled = false;
+
+      window.scrollTo({ top: document.body.scrollHeight, behavior:"smooth" });
+    }
+
+    function clearEdit(){
+      editingSample = null;
+      $("editCode").textContent = "없음";
+      $("editPosition").value = "";
+      $("editStartTime").value = "";
+      $("editEquipment").value = "";
+      $("btnSaveSample").disabled = true;
+      $("btnDeleteSample").disabled = true;
+      $("btnCancelEdit").disabled = true;
+    }
+
+    async function saveSample(){
+      clearToast("projectMsg");
+      if (!editingSample) return;
+      if (currentProject.status !== "draft") return toast("projectMsg", "draft 상태에서만 수정 가능.", true);
+
+      const position = $("editPosition").value.trim() || null;
+      const start_time = $("editStartTime").value || null;
+      const equipment = (selectedType==="S") ? ($("editEquipment").value.trim() || null) : null;
+
+      const { error } = await supabase
+        .from("project_samples")
+        .update({ position, start_time, equipment })
+        .eq("id", editingSample.id);
+
+      if (error) return toast("projectMsg", "수정 저장 실패: " + (error.message || error), true);
+
+      toast("projectMsg", "수정 저장됨: P" + editingSample.seq, false);
+      clearEdit();
+      await reloadSamples();
+    }
+
+    async function deleteSample(){
+      clearToast("projectMsg");
+      if (!editingSample) return;
+      if (currentProject.status !== "draft") return toast("projectMsg", "draft 상태에서만 삭제 가능.", true);
+      if (!confirm("P" + editingSample.seq + " 삭제할까?")) return;
+
+      const { error } = await supabase.from("project_samples").delete().eq("id", editingSample.id);
+      if (error) return toast("projectMsg", "삭제 실패: " + (error.message || error), true);
+
+      toast("projectMsg", "삭제됨: P" + editingSample.seq, false);
+      clearEdit();
+      await reloadSamples();
+    }
+
+    async function tempSave(){
+      clearToast("projectMsg");
+      if (!currentProject) return;
+      if (currentProject.status !== "draft") return toast("projectMsg", "draft 상태에서만 임시저장 가능.", true);
+
+      const { error } = await supabase.from("projects").update({ updated_at: new Date().toISOString() }).eq("id", currentProject.id);
+      if (error) return toast("projectMsg", "임시저장 실패: " + (error.message || error), true);
+
+      toast("projectMsg", "임시저장 완료.", false);
+    }
+
+    async function send(){
+      clearToast("projectMsg");
+      if (!currentProject) return;
+      if (currentProject.status !== "draft") return toast("projectMsg", "이미 전송/잠김 상태.", true);
+      if (!confirm("데이터 전송할까? (전송 후 수정 막힘)")) return;
+
+      const { error } = await supabase
+        .from("projects")
+        .update({ status: "uploaded", updated_at: new Date().toISOString() })
+        .eq("id", currentProject.id);
+
+      if (error) return toast("projectMsg", "전송 실패: " + (error.message || error), true);
+
+      currentProject.status = "uploaded";
+      setProjectHeader(currentProject);
+      toast("projectMsg", "전송 완료. (PC에서 동기화 대상)", false);
+    }
+
+    // Routing
     async function route(){
       const { data } = await supabase.auth.getSession();
       user = data?.session?.user || null;
@@ -257,7 +724,7 @@
       }
     }
 
-    // events
+    // UI wiring
     $("btnSignIn").onclick = async ()=>{
       clearToast("loginMsg");
       toast("loginMsg","로그인 시도중...",false);
@@ -287,9 +754,9 @@
 
     $("logoutBtn").onclick = async ()=>{
       try{ await supabase.auth.signOut(); }catch(e){}
-      // 세션 꼬이면 sb-* 저장소도 비움
       for (const k of Object.keys(localStorage)) if (k.startsWith("sb-")) localStorage.removeItem(k);
       localStorage.removeItem(LS_COMP);
+      localStorage.removeItem(LS_TYPE);
       location.reload();
     };
 
@@ -314,11 +781,37 @@
 
     $("btnBackCompany").onclick = async ()=>{ await route(); };
 
-    $("typeC").onclick = ()=> toast("typeMsg","농도 선택됨. (다음 화면은 이어서 붙일 예정)",false);
-    $("typeS").onclick = ()=> toast("typeMsg","비산 선택됨. (다음 화면은 이어서 붙일 예정)",false);
+    $("typeC").onclick = async ()=>{
+      selectedType = "C";
+      localStorage.setItem(LS_TYPE, selectedType);
+      applyTypeUI();
+      await loadProjects();
+    };
+    $("typeS").onclick = async ()=>{
+      selectedType = "S";
+      localStorage.setItem(LS_TYPE, selectedType);
+      applyTypeUI();
+      await loadProjects();
+    };
+
+    $("btnBackType").onclick = ()=> show("viewType");
+    $("btnRefreshProjects").onclick = async ()=> await loadProjects();
+    $("btnCreateProject").onclick = async ()=> await createProject();
+
+    $("btnBackProjects").onclick = async ()=>{ currentProject=null; clearEdit(); await loadProjects(); };
+
+    $("btnRefreshSamples").onclick = async ()=> await reloadSamples();
+    $("btnAddSample").onclick = async ()=> await addSample();
+    $("btnCancelEdit").onclick = ()=> clearEdit();
+    $("btnSaveSample").onclick = async ()=> await saveSample();
+    $("btnDeleteSample").onclick = async ()=> await deleteSample();
+    $("btnTempSave").onclick = async ()=> await tempSave();
+    $("btnSend").onclick = async ()=> await send();
 
     window.addEventListener("load", async ()=>{
       $("envBadge").textContent = "Supabase 연결됨";
+      try{ selectedCompany = JSON.parse(localStorage.getItem(LS_COMP) || "null"); }catch{}
+      try{ selectedType = localStorage.getItem(LS_TYPE) || null; }catch{}
       await route();
       supabase.auth.onAuthStateChange(async ()=>{ await route(); });
     });
