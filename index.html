@@ -3,194 +3,170 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Asbestos Report System</title>
+  <title>석면 현장 입력</title>
   <style>
-    :root { --bg:#f6f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --line:#e5e7eb; --primary:#2563eb; }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo","Noto Sans KR","맑은 고딕", sans-serif;
-      background:var(--bg); color:var(--text);
-    }
-    .wrap{ max-width:720px; margin:0 auto; padding:24px 16px 40px; }
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:16px;
-      padding:18px; box-shadow: 0 1px 0 rgba(0,0,0,.02);
-    }
-    h1{ font-size:26px; margin:4px 0 10px; }
-    h2{ font-size:18px; margin:0 0 10px; }
-    p{ margin:8px 0; color:var(--muted); line-height:1.4; }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .sp{ height:14px; }
-    label{ font-size:13px; color:var(--muted); display:block; margin:10px 0 6px; }
-    input, select{
-      width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px;
-      font-size:15px; background:#fff;
-    }
-    button{
-      border:0; border-radius:14px; padding:12px 14px; font-size:15px; font-weight:700;
-      cursor:pointer; background:var(--primary); color:#fff;
-      touch-action: manipulation;
-    }
-    button.secondary{ background:#111827; }
-    button.ghost{ background:#fff; color:#111827; border:1px solid var(--line); }
-    button:disabled{ opacity:.45; cursor:not-allowed; }
-
-    .topbar{
-      position: sticky; top:0; z-index:9999;
-      background: var(--bg);
-      padding: 10px 0;
-      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;
-    }
-    .badge{ font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; color:var(--muted); background:#fff; }
-    .list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
-    .item{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      padding:12px 12px; background:#fff; border-top:1px solid var(--line);
-    }
-    .item:first-child{ border-top:0; }
-    .item strong{ font-size:15px; }
-    .hint{ font-size:12px; color:var(--muted); }
-    .danger{ color:#b91c1c; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media (max-width:520px){ .grid2{ grid-template-columns:1fr; } }
-    .types{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
-    .typebtn{
-      padding:14px; border:1px solid var(--line); border-radius:14px; background:#fff; color:#111827; text-align:left;
-    }
-    .typebtn b{ display:block; font-size:16px; margin-bottom:4px; }
-    .typebtn small{ color:var(--muted); }
-    .typebtn.disabled{ opacity:.5; }
-    .footerbtn{ width:100%; padding:16px; border-radius:16px; font-size:16px; margin-top:14px; }
-    .toast{
-      margin-top:12px; padding:10px 12px; border-radius:12px; border:1px solid var(--line);
-      background:#fff; color:var(--muted); font-size:13px;
-      word-break: break-word;
-    }
+    :root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--primary:#2563eb;--dark:#111827;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR","맑은 고딕",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:720px;margin:0 auto;padding:20px 14px 40px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:10px 0}
+    .badge{font-size:12px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    h1{margin:0 0 10px;font-size:24px}
+    p{margin:8px 0;color:var(--muted);line-height:1.4}
+    label{display:block;margin:10px 0 6px;font-size:13px;color:var(--muted)}
+    input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+    button{border:0;border-radius:14px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--primary);color:#fff;touch-action:manipulation}
+    button.dark{background:var(--dark)}
+    button.ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .toast{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px;word-break:break-word}
+    .danger{color:#dc2626}
+    .list{margin-top:10px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;background:#fff;border-top:1px solid var(--line)}
+    .item:first-child{border-top:0}
+    .item strong{font-size:15px}
+    .hint{font-size:12px;color:var(--muted)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .types{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .typebtn{padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--text);text-align:left}
+    .typebtn b{display:block;font-size:16px;margin-bottom:4px}
+    .typebtn small{color:var(--muted)}
+    .footer{margin-top:14px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
+    <div class="top">
       <div class="badge" id="envBadge">Supabase 연결</div>
       <div class="row">
         <span class="badge" id="sessionBadge">로그인 필요</span>
-        <button type="button" class="ghost" id="logoutBtn" style="display:none;">로그아웃</button>
+        <button class="ghost" id="logoutBtn" style="display:none">로그아웃</button>
       </div>
     </div>
 
-    <section id="loginView" class="card" style="display:none;">
+    <!-- LOGIN -->
+    <section id="viewLogin" class="card" style="display:none">
       <h1>로그인</h1>
-      <p>아이디 만들고 로그인하면, 접근 가능한 회사만 자동으로 뜨게 해둘게.</p>
+      <p>회원가입/로그인 후, 접근 가능한 회사만 뜨게 해둠.</p>
 
       <label>이메일</label>
-      <input id="email" type="email" placeholder="email@example.com" autocomplete="email" />
+      <input id="email" type="email" autocomplete="email" placeholder="email@example.com" />
 
       <label>비밀번호</label>
-      <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" />
+      <input id="password" type="password" autocomplete="current-password" placeholder="비밀번호" />
 
-      <div class="sp"></div>
-      <div class="grid2">
-        <button type="button" id="signInBtn">로그인</button>
-        <button type="button" id="signUpBtn" class="secondary">회원가입</button>
+      <div class="grid2" style="margin-top:12px">
+        <button id="btnSignIn">로그인</button>
+        <button id="btnSignUp" class="dark">회원가입</button>
       </div>
 
-      <div class="toast" id="loginMsg" style="display:none;"></div>
-      <p class="hint">※ 이메일 인증을 켜둔 상태면 회원가입 후 확인메일 인증이 필요할 수 있음.</p>
+      <div class="toast" id="loginMsg" style="display:none"></div>
+      <p class="hint">이메일 인증을 켜두면 회원가입 후 확인메일 인증 필요할 수 있음.</p>
     </section>
 
-    <section id="pendingView" class="card" style="display:none;">
+    <!-- PENDING -->
+    <section id="viewPending" class="card" style="display:none">
       <h1>승인 대기</h1>
-      <p>지금은 접근 가능한 회사가 없어. 아래 UID를 회사 관리자(또는 너)에게 전달해서 권한을 받아.</p>
+      <p>접근 가능한 회사가 없음. 아래 UID를 관리자에게 보내서 권한 받아.</p>
 
-      <div class="item" style="border:1px solid var(--line); border-radius:14px;">
+      <div class="item" style="border:1px solid var(--line);border-radius:14px">
         <div>
           <div class="hint">내 UID</div>
           <div class="mono" id="myUid">-</div>
         </div>
-        <button type="button" class="ghost" id="copyUidBtn">복사</button>
+        <button class="ghost" id="btnCopyUid">복사</button>
       </div>
 
-      <div class="sp"></div>
-      <button type="button" class="footerbtn" id="refreshAccessBtn">권한 다시 확인</button>
+      <div class="footer">
+        <button id="btnRefreshAccess" style="width:100%;padding:16px;border-radius:16px">권한 다시 확인</button>
+      </div>
 
-      <div class="toast" id="pendingMsg" style="display:none;"></div>
+      <div class="toast" id="pendingMsg" style="display:none"></div>
     </section>
 
-    <section id="companyView" class="card" style="display:none;">
-      <h1>반갑습니다!</h1>
-      <p>접속하실 회사를 선택해주세요.</p>
+    <!-- COMPANY -->
+    <section id="viewCompany" class="card" style="display:none">
+      <h1>회사 선택</h1>
+      <p>접속할 회사를 선택해.</p>
 
       <div class="list" id="companyList"></div>
 
-      <button type="button" class="footerbtn" id="startBtn" disabled>현장 업무 시작</button>
-      <div class="toast" id="companyMsg" style="display:none;"></div>
+      <div class="footer">
+        <button id="btnStart" style="width:100%;padding:16px;border-radius:16px" disabled>현장 업무 시작</button>
+      </div>
+
+      <div class="toast" id="companyMsg" style="display:none"></div>
     </section>
 
-    <section id="dashView" class="card" style="display:none;">
-      <h1 id="dashTitle">현장 업무</h1>
-      <p class="hint">회사: <span id="dashCompanyName">-</span> · 내 UID: <span id="dashUid" class="mono">-</span></p>
+    <!-- TYPE -->
+    <section id="viewType" class="card" style="display:none">
+      <h1>현장 업무</h1>
+      <p class="hint">회사: <span id="pickedCompany">-</span> · UID: <span id="pickedUid" class="mono">-</span></p>
 
-      <h2 style="margin-top:14px;">보고서 종류</h2>
       <div class="types">
-        <button type="button" class="typebtn" id="typeC">
-          <b>농도</b>
-          <small>측정위치/시작시간/사진 1장 입력</small>
+        <button class="typebtn" id="typeC">
+          <b>농도</b><small>측정위치/시작시간/사진(1장)</small>
         </button>
-        <button type="button" class="typebtn" id="typeS">
-          <b>비산</b>
-          <small>장비/측정위치/시작시간/전·후사진(선택)</small>
-        </button>
-        <button type="button" class="typebtn disabled" id="typeSV" disabled>
-          <b>감리</b><small>추후 업데이트</small>
-        </button>
-        <button type="button" class="typebtn disabled" id="typeIN" disabled>
-          <b>조사</b><small>추후 업데이트</small>
+        <button class="typebtn" id="typeS">
+          <b>비산</b><small>장비/측정위치/시작시간/전·후사진(선택)</small>
         </button>
       </div>
 
-      <div class="toast" id="dashMsg" style="display:none;"></div>
+      <div class="toast" id="typeMsg" style="display:none"></div>
 
-      <div class="sp"></div>
-      <button type="button" class="ghost" id="backToCompaniesBtn">회사 다시 선택</button>
+      <div class="footer">
+        <button class="ghost" id="btnBackCompany" style="width:100%;padding:16px;border-radius:16px">회사 다시 선택</button>
+      </div>
     </section>
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // 너 프로젝트 값
     const SUPABASE_URL = "https://zaivmmhooaqaifbkulcl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_xiOg7viV4LgelbuxPLzw3g_YR1YQ4zi";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
     });
 
-    const el = (id) => document.getElementById(id);
-    const views = ["loginView","pendingView","companyView","dashView"];
-    function show(viewId){ views.forEach(v => el(v).style.display = (v === viewId ? "block" : "none")); }
-    function setMsg(id, text, isError=false){
-      const box = el(id);
-      box.style.display = "block";
-      box.textContent = text;
-      box.classList.toggle("danger", !!isError);
+    const $ = (id)=>document.getElementById(id);
+    const views = ["viewLogin","viewPending","viewCompany","viewType"];
+    const LS_COMP = "ars_selected_company";
+
+    let user=null;
+    let selectedCompany=null;
+
+    function show(viewId){
+      views.forEach(v => $(v).style.display = (v===viewId ? "block" : "none"));
+      window.scrollTo({top:0,behavior:"auto"});
     }
-    function clearMsg(id){
-      const box = el(id);
-      box.style.display = "none";
-      box.textContent = "";
-      box.classList.remove("danger");
+    function toast(id, msg, isErr=false){
+      const el = $(id);
+      el.style.display = "block";
+      el.textContent = msg;
+      el.classList.toggle("danger", !!isErr);
     }
-    function setSessionBadge(user){
-      el("sessionBadge").textContent = user ? "로그인됨" : "로그인 필요";
-      el("logoutBtn").style.display = user ? "inline-block" : "none";
+    function clearToast(id){
+      const el = $(id);
+      el.style.display = "none";
+      el.textContent = "";
+      el.classList.remove("danger");
+    }
+    function setSessionUI(){
+      $("sessionBadge").textContent = user ? "로그인됨" : "로그인 필요";
+      $("logoutBtn").style.display = user ? "inline-block" : "none";
+    }
+    function esc(s){
+      return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
-    let currentUser = null;
-    let selectedCompany = null;
-    const LS_SELECTED_COMPANY = "ars_selected_company";
-
-    async function getActiveMembershipCompanies(userId){
+    async function getAccessibleCompanies(userId){
       const { data: mems, error: memErr } = await supabase
         .from("memberships")
         .select("company_id, role, status")
@@ -198,181 +174,153 @@
         .eq("status", "active");
       if (memErr) throw memErr;
 
-      const ids = (mems || []).map(m => m.company_id).filter(Boolean);
+      const ids = (mems||[]).map(m=>m.company_id).filter(Boolean);
       if (!ids.length) return [];
 
       const { data: comps, error: compErr } = await supabase
         .from("companies")
         .select("id, name, status")
         .in("id", ids)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending:false });
       if (compErr) throw compErr;
 
-      const roleByCompany = new Map((mems||[]).map(m => [m.company_id, m.role]));
-      return (comps || []).map(c => ({...c, role: roleByCompany.get(c.id) || "member"}));
+      const roleBy = new Map((mems||[]).map(m=>[m.company_id, m.role]));
+      return (comps||[]).map(c=>({...c, role: roleBy.get(c.id)||"member"}));
     }
 
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    function renderCompanyList(companies){
-      const list = el("companyList");
+    function renderCompanies(companies){
+      const list = $("companyList");
       list.innerHTML = "";
 
       let pickedId = null;
-      const stored = localStorage.getItem(LS_SELECTED_COMPANY);
-      try { pickedId = stored ? JSON.parse(stored)?.id : null; } catch {}
+      try{ pickedId = JSON.parse(localStorage.getItem(LS_COMP) || "null")?.id || null; }catch{}
 
       if (!companies.length){
-        list.innerHTML = `<div class="item"><div><strong>접근 가능한 회사가 없음</strong><div class="hint">관리자 승인 후 다시 확인해줘</div></div></div>`;
-        el("startBtn").disabled = true;
+        list.innerHTML = `<div class="item"><div><strong>접근 가능한 회사 없음</strong><div class="hint">관리자 승인 후 다시 확인해</div></div></div>`;
+        $("btnStart").disabled = true;
         return;
       }
 
-      companies.forEach(c => {
+      companies.forEach(c=>{
         const item = document.createElement("div");
         item.className = "item";
+
         const left = document.createElement("div");
-        left.innerHTML = `<strong>${escapeHtml(c.name)}</strong><div class="hint">권한: ${escapeHtml(c.role)} · 상태: ${escapeHtml(c.status)}</div>`;
-        const right = document.createElement("button");
-        right.type = "button";
-        right.className = "ghost";
-        right.textContent = (pickedId === c.id) ? "선택됨" : "선택";
-        right.onclick = () => {
-          selectedCompany = { id: c.id, name: c.name };
-          localStorage.setItem(LS_SELECTED_COMPANY, JSON.stringify(selectedCompany));
-          [...list.querySelectorAll("button.ghost")].forEach(b => b.textContent = "선택");
-          right.textContent = "선택됨";
-          el("startBtn").disabled = false;
-          clearMsg("companyMsg");
+        left.innerHTML = `<strong>${esc(c.name)}</strong><div class="hint">권한:${esc(c.role)} · 상태:${esc(c.status)}</div>`;
+
+        const btn = document.createElement("button");
+        btn.className = "ghost";
+        btn.textContent = (pickedId === c.id) ? "선택됨" : "선택";
+        btn.onclick = ()=>{
+          selectedCompany = { id:c.id, name:c.name };
+          localStorage.setItem(LS_COMP, JSON.stringify(selectedCompany));
+          [...list.querySelectorAll("button.ghost")].forEach(b=>b.textContent="선택");
+          btn.textContent = "선택됨";
+          $("btnStart").disabled = false;
+          clearToast("companyMsg");
         };
+
         item.appendChild(left);
-        item.appendChild(right);
+        item.appendChild(btn);
         list.appendChild(item);
 
-        if (pickedId && pickedId === c.id) {
-          selectedCompany = { id: c.id, name: c.name };
-          right.textContent = "선택됨";
-          el("startBtn").disabled = false;
+        if (pickedId === c.id){
+          selectedCompany = { id:c.id, name:c.name };
+          $("btnStart").disabled = false;
         }
       });
     }
 
     async function route(){
       const { data } = await supabase.auth.getSession();
-      const session = data?.session || null;
-      currentUser = session?.user || null;
-      setSessionBadge(currentUser);
+      user = data?.session?.user || null;
+      setSessionUI();
 
-      // ✅ FIX: placeholder만 막기 (이게 핵심 수정)
-      if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PUT_YOUR_ANON_KEY_HERE")) {
-        show("loginView");
-        setMsg("loginMsg", "SUPABASE_ANON_KEY부터 넣어줘. (index.html 상단)", true);
-        return;
-      }
-
-      if (!currentUser){
-        show("loginView");
+      if (!user){
+        show("viewLogin");
         return;
       }
 
       try{
-        const companies = await getActiveMembershipCompanies(currentUser.id);
-
+        const companies = await getAccessibleCompanies(user.id);
         if (!companies.length){
-          show("pendingView");
-          el("myUid").textContent = currentUser.id;
-          clearMsg("pendingMsg");
+          show("viewPending");
+          $("myUid").textContent = user.id;
           return;
         }
-
-        show("companyView");
-        renderCompanyList(companies);
-        clearMsg("companyMsg");
-
+        show("viewCompany");
+        renderCompanies(companies);
       }catch(err){
-        show("pendingView");
-        el("myUid").textContent = currentUser?.id || "-";
-        setMsg("pendingMsg", `회사 목록을 못 불러왔어: ${err?.message || err}`, true);
+        show("viewPending");
+        $("myUid").textContent = user.id;
+        toast("pendingMsg", "회사 목록 오류: " + (err?.message || err), true);
       }
     }
 
-    // 로그인
-    el("signInBtn").onclick = async () => {
-      clearMsg("loginMsg");
-      setMsg("loginMsg", "로그인 시도중...", false);
-
-      const email = el("email").value.trim();
-      const password = el("password").value;
-      if (!email || !password) return setMsg("loginMsg", "이메일/비번 넣어.", true);
+    // events
+    $("btnSignIn").onclick = async ()=>{
+      clearToast("loginMsg");
+      toast("loginMsg","로그인 시도중...",false);
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      if (!email || !password) return toast("loginMsg","이메일/비번 넣어.",true);
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return setMsg("loginMsg", error.message, true);
+      if (error) return toast("loginMsg", error.message, true);
 
-      setMsg("loginMsg", "로그인 성공. 권한 확인중...", false);
+      toast("loginMsg","로그인 성공.",false);
       await route();
     };
 
-    // 회원가입
-    el("signUpBtn").onclick = async () => {
-      clearMsg("loginMsg");
-      setMsg("loginMsg", "회원가입 시도중...", false);
-
-      const email = el("email").value.trim();
-      const password = el("password").value;
-      if (!email || !password) return setMsg("loginMsg", "이메일/비번 넣어.", true);
+    $("btnSignUp").onclick = async ()=>{
+      clearToast("loginMsg");
+      toast("loginMsg","회원가입 시도중...",false);
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      if (!email || !password) return toast("loginMsg","이메일/비번 넣어.",true);
 
       const { error } = await supabase.auth.signUp({ email, password });
-      if (error) return setMsg("loginMsg", error.message, true);
+      if (error) return toast("loginMsg", error.message, true);
 
-      setMsg("loginMsg", "회원가입 완료. (이메일 인증 켜져있으면 메일 확인 필요)", false);
+      toast("loginMsg","회원가입 완료. (이메일 인증 켜져있으면 메일 확인)",false);
     };
 
-    // ✅ FIX: 로그아웃 = signOut + sb-* 로컬세션 강제 삭제 + reload
-    el("logoutBtn").onclick = async () => {
-      try { await supabase.auth.signOut(); } catch(e) {}
-      for (const k of Object.keys(localStorage)) {
-        if (k.startsWith("sb-")) localStorage.removeItem(k);
-      }
-      localStorage.removeItem(LS_SELECTED_COMPANY);
-      selectedCompany = null;
+    $("logoutBtn").onclick = async ()=>{
+      try{ await supabase.auth.signOut(); }catch(e){}
+      // 세션 꼬이면 sb-* 저장소도 비움
+      for (const k of Object.keys(localStorage)) if (k.startsWith("sb-")) localStorage.removeItem(k);
+      localStorage.removeItem(LS_COMP);
       location.reload();
     };
 
-    // pending
-    el("copyUidBtn").onclick = async () => {
+    $("btnCopyUid").onclick = async ()=>{
       try{
-        await navigator.clipboard.writeText(el("myUid").textContent.trim());
-        setMsg("pendingMsg", "UID 복사됨. 회사 관리자한테 보내.", false);
+        await navigator.clipboard.writeText(($("myUid").textContent||"").trim());
+        toast("pendingMsg","UID 복사됨. 관리자한테 보내.",false);
       }catch{
-        setMsg("pendingMsg", "복사 실패. UID 길게 눌러서 복사해.", true);
+        toast("pendingMsg","복사 실패. UID 길게 눌러서 복사해.",true);
       }
     };
-    el("refreshAccessBtn").onclick = async () => {
-      clearMsg("pendingMsg");
-      await route();
+
+    $("btnRefreshAccess").onclick = async ()=>{ clearToast("pendingMsg"); await route(); };
+
+    $("btnStart").onclick = ()=>{
+      if (!selectedCompany) return toast("companyMsg","회사부터 선택해.",true);
+      show("viewType");
+      $("pickedCompany").textContent = selectedCompany.name;
+      $("pickedUid").textContent = user?.id || "-";
+      clearToast("typeMsg");
     };
 
-    // 회사 선택 → 대시보드
-    el("startBtn").onclick = async () => {
-      if (!selectedCompany) return setMsg("companyMsg", "회사부터 선택해.", true);
-      show("dashView");
-      el("dashCompanyName").textContent = selectedCompany.name;
-      el("dashUid").textContent = currentUser?.id || "-";
-      clearMsg("dashMsg");
-    };
-    el("backToCompaniesBtn").onclick = async () => { await route(); };
+    $("btnBackCompany").onclick = async ()=>{ await route(); };
 
-    el("typeC").onclick = () => setMsg("dashMsg", "농도 화면은 다음 단계에서 붙일게. (현장 생성/시료목록/사진)", false);
-    el("typeS").onclick = () => setMsg("dashMsg", "비산 화면은 다음 단계에서 붙일게. (장비/전후사진 선택 가능)", false);
+    $("typeC").onclick = ()=> toast("typeMsg","농도 선택됨. (다음 화면은 이어서 붙일 예정)",false);
+    $("typeS").onclick = ()=> toast("typeMsg","비산 선택됨. (다음 화면은 이어서 붙일 예정)",false);
 
-    window.addEventListener("load", async () => {
-      el("envBadge").textContent = "Supabase 연결됨";
+    window.addEventListener("load", async ()=>{
+      $("envBadge").textContent = "Supabase 연결됨";
       await route();
-      supabase.auth.onAuthStateChange(async () => { await route(); });
+      supabase.auth.onAuthStateChange(async ()=>{ await route(); });
     });
   </script>
 </body>
